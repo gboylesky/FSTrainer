@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <title>FS Randoms Trainer</title>
 <style>
-/* ---------- Global Layout ---------- */
 body {
     background-color: #1e1e1e;
     color: white;
@@ -23,7 +22,7 @@ h1 {
 
 /* ---------- Content Container ---------- */
 .content {
-    width: 315px;
+    width: 420px;
     margin: 0 auto;
     text-align: left;
     background-color: #1e1e1e;
@@ -33,16 +32,11 @@ h1 {
 h2 {
     font-size: 22px;
     font-weight: bold;
-    margin: 8px 0 6px 0;  /* tighter spacing overall */
+    margin: 8px 0 6px 0;
     text-align: left;
 }
+.content h2:first-of-type { margin-top: 2px; }
 
-/* Bring Formation closer to banner */
-.content h2:first-of-type {
-    margin-top: 2px; /* reduces vertical gap above Formation only */
-}
-
-/* Inline progress text (same as heading) */
 .progress-inline {
     font-size: 20px;
     font-weight: bold;
@@ -52,8 +46,8 @@ h2 {
 
 /* ---------- Slot Banner ---------- */
 .slot-banner {
-    width: 315px;               /* same width as content */
-    margin: 0 auto 10px auto;   /* small bottom spacing */
+    width: 420px;
+    margin: 0 auto 10px auto;
 }
 .slot-banner img {
     width: 100%;
@@ -61,27 +55,30 @@ h2 {
     display: block;
     border-radius: 6px;
     box-shadow: 0 0 10px rgba(0,0,0,0.5);
-    animation: fadeIn 0.6s ease-in-out;
 }
 
 /* ---------- Image ---------- */
 .image-wrapper {
-    position: relative;
+    position: relative;             /* anchor overlay */
     width: 100%;
-    margin-bottom: 10px;
+    height: 420px;                  /* fixed consistent height */
     background-color: #1e1e1e;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
 }
+
 .image-wrapper img {
-    display: block;
     width: 100%;
-    margin-left: 0%;
-    height: auto;
-    object-fit: contain;
+    height: 100%;
+    object-fit: contain;           /* keeps proportions */
+    background-color: #1e1e1e;     /* hides transparent edges */
 }
 
 /* Overlay feedback */
 .overlay {
-    position: absolute;
+    position: absolute;             /* overlay centred within wrapper */
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
@@ -110,14 +107,11 @@ h2 {
     color: white;
     border: 2px solid #555;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: background-color 0.2s ease, transform 0.05s ease;
 }
-.buttons button:hover {
-    background-color: white;
-    color: black;
-}
+.buttons button:hover { background-color: #444; }
 .buttons button:active {
-    background-color: #ddd;
+    background-color: #555;
     transform: scale(0.97);
 }
 
@@ -153,21 +147,12 @@ h2 {
     padding: 25px 30px;
     border-radius: 10px;
     box-shadow: 0 0 20px rgba(0,0,0,0.6);
-    text-align: center;     /* centered heading */
-    position: relative;
-    width: 187px;           /* reduced by 25% */
-    animation: fadeIn 0.3s ease-in-out;
-}
-.modal-content h2 {
-    margin-top: 0;
-    margin-bottom: 10px;
-    font-size: 26px;
     text-align: center;
+    position: relative;
+    width: 187px;
 }
-.modal-content p {
-    font-size: 20px;
-    margin: 6px 0;
-}
+.modal-content h2 { margin-top: 0; margin-bottom: 10px; font-size: 26px; }
+.modal-content p { font-size: 20px; margin: 6px 0; }
 .close-btn {
     position: absolute;
     top: 8px;
@@ -178,19 +163,12 @@ h2 {
     cursor: pointer;
 }
 .close-btn:hover { color: white; }
-
-/* ---------- Animations ---------- */
-@keyframes fadeIn {
-    from { opacity: 0; transform: scale(0.95); }
-    to   { opacity: 1; transform: scale(1); }
-}
-
 </style>
 </head>
 <body>
 <h1>FS Randoms Trainer</h1>
 
-<!-- ✅ Slot Banner -->
+<!-- Slot Banner -->
 <div class="slot-banner">
     <img src="{{ url_for('static', filename='Slots.png') }}" alt="Slot Positions">
 </div>
@@ -240,7 +218,6 @@ window.addEventListener('DOMContentLoaded', () => {
 
     if (overlay) {
         setTimeout(() => overlay.classList.remove('show'), 700);
-
         if (showNext) {
             setTimeout(() => {
                 window.location.href = "{{ url_for('next_step') }}";
