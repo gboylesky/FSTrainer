@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>FS Randoms Trainer</title>
+<style>
+/* ---------- Global Layout ---------- */
+body {
+    background-color: #1e1e1e;
+    color: white;
+    font-family: 'Segoe UI', sans-serif;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+}
+
+/* Title */
+h1 {
+    font-size: 32px;
+    font-weight: bold;
+    margin: 20px 0 10px 0;
+}
+
+/* ---------- Content Container ---------- */
+.content {
+    width: 315px;
+    margin: 0 auto;
+    text-align: left;
+    background-color: #1e1e1e;
+}
+
+/* Headings */
+h2 {
+    font-size: 22px;
+    font-weight: bold;
+    margin: 8px 0 6px 0;  /* tighter spacing overall */
+    text-align: left;
+}
+
+/* Bring Formation closer to banner */
+.content h2:first-of-type {
+    margin-top: 2px; /* reduces vertical gap above Formation only */
+}
+
+/* Inline progress text (same as heading) */
+.progress-inline {
+    font-size: 20px;
+    font-weight: bold;
+    color: white;
+    margin-left: 6px;
+}
+
+/* ---------- Slot Banner ---------- */
+.slot-banner {
+    width: 315px;               /* same width as content */
+    margin: 0 auto 10px auto;   /* small bottom spacing */
+}
+.slot-banner img {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 6px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    animation: fadeIn 0.6s ease-in-out;
+}
+
+/* ---------- Image ---------- */
+.image-wrapper {
+    position: relative;
+    width: 100%;
+    margin-bottom: 10px;
+    background-color: #1e1e1e;
+}
+.image-wrapper img {
+    display: block;
+    width: 100%;
+    margin-left: 0%;
+    height: auto;
+    object-fit: contain;
+}
+
+/* Overlay feedback */
+.overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 46px;
+    font-weight: bold;
+    opacity: 0;
+    pointer-events: none;
+    white-space: nowrap;
+    transition: opacity 0.7s ease-in-out;
+}
+.overlay.show { opacity: 1; }
+
+/* ---------- Buttons ---------- */
+.buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    width: 100%;
+    margin: 10px 0 20px 0;
+}
+.buttons button {
+    font-size: 20px;
+    padding: 8px;
+    border-radius: 8px;
+    background: #333;
+    color: white;
+    border: 2px solid #555;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.buttons button:hover {
+    background-color: white;
+    color: black;
+}
+.buttons button:active {
+    background-color: #ddd;
+    transform: scale(0.97);
+}
+
+/* ---------- Progress ---------- */
+.progress-bar-container {
+    background-color: #333;
+    border-radius: 10px;
+    overflow: hidden;
+    height: 25px;
+    width: 100%;
+    margin-bottom: 8px;
+}
+.progress-bar {
+    height: 100%;
+    background-color: lime;
+    width: 0%;
+    transition: width 0.3s ease-in-out;
+}
+
+/* ---------- Modal ---------- */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background-color: rgba(0,0,0,0.7);
+    justify-content: center;
+    align-items: center;
+    z-index: 999;
+}
+.modal-content {
+    background-color: #2f2f2f;
+    padding: 25px 30px;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.6);
+    text-align: center;     /* centered heading */
+    position: relative;
+    width: 187px;           /* reduced by 25% */
+    animation: fadeIn 0.3s ease-in-out;
+}
+.modal-content h2 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 26px;
+    text-align: center;
+}
+.modal-content p {
+    font-size: 20px;
+    margin: 6px 0;
+}
+.close-btn {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    font-size: 22px;
+    font-weight: bold;
+    color: #aaa;
+    cursor: pointer;
+}
+.close-btn:hover { color: white; }
+
+/* ---------- Animations ---------- */
+@keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to   { opacity: 1; transform: scale(1); }
+}
+
+</style>
+</head>
+<body>
+<h1>FS Randoms Trainer</h1>
+
+<!-- ✅ Slot Banner -->
+<div class="slot-banner">
+    <img src="{{ url_for('static', filename='Slots.png') }}" alt="Slot Positions">
+</div>
+
+<div class="content">
+    <h2>Formation</h2>
+
+    <div class="image-wrapper">
+        <img src="data:image/png;base64,{{ img_data }}" alt="Formation Image">
+        {% if msg %}
+        <div id="overlay" class="overlay show" style="color: {{ color }}">{{ msg }}</div>
+        {% endif %}
+    </div>
+
+    <h2>Letter</h2>
+    <form method="POST" class="buttons">
+        {% for label in labels %}
+        <button type="submit" name="guess" value="{{ label }}">{{ label }}</button>
+        {% endfor %}
+    </form>
+
+    <h2>
+        Progress <span class="progress-inline">({{ progress }} of {{ total }})</span>
+    </h2>
+
+    <div class="progress-bar-container">
+        <div class="progress-bar" id="progress-bar"
+             style="width: {{ (progress / total * 100) if total > 0 else 0 }}%;"></div>
+    </div>
+</div>
+
+<!-- Results Modal -->
+<div id="resultsModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeAndReset()">&times;</span>
+        <h2>Results</h2>
+        <p style="color: lime;">✅ Correct: {{ correct }}</p>
+        <p style="color: red;">❌ Incorrect: {{ incorrect }}</p>
+    </div>
+</div>
+
+<script>
+window.addEventListener('DOMContentLoaded', () => {
+    const overlay = document.getElementById('overlay');
+    const showNext = {{ 'true' if show_next else 'false' }};
+    const showResults = {{ 'true' if show_results else 'false' }};
+
+    if (overlay) {
+        setTimeout(() => overlay.classList.remove('show'), 700);
+
+        if (showNext) {
+            setTimeout(() => {
+                window.location.href = "{{ url_for('next_step') }}";
+            }, 1000);
+        }
+    }
+
+    if (showResults) {
+        document.getElementById('resultsModal').style.display = 'flex';
+    }
+});
+
+function closeAndReset() {
+    const modal = document.getElementById('resultsModal');
+    modal.style.opacity = '1';
+    modal.style.transition = 'opacity 0.5s ease-out';
+    modal.style.opacity = '0';
+    setTimeout(() => {
+        modal.style.display = 'none';
+        window.location.href = "{{ url_for('reset') }}";
+    }, 500);
+}
+</script>
+</body>
+</html>
