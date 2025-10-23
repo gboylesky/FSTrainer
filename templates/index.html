@@ -97,6 +97,14 @@ h2 {
     100% {opacity:0;}
 }
 
+/* ✅ Stronger, deeper green for mobile */
+@media (max-width: 768px) {
+  .overlay[style*="lime"] {
+      color: #00e600 !important; /* vivid OLED-safe green */
+      text-shadow: 0 0 20px rgba(0, 255, 0, 0.9);
+  }
+}
+
 /* ---------- Buttons ---------- */
 .buttons {
     display:grid;
@@ -139,14 +147,14 @@ h2 {
 .modal {
     display:{% if show_results %}flex{% else %}none{% endif %};
     position:fixed;
-    inset:0; /* replaces top/left/width/height for precision */
+    inset:0; /* precise, no gap */
     background:none; /* remove translucent layer */
     justify-content:center;
     align-items:center;
     z-index:999;
 }
 
-/* ✅ Responsive modal scaling added */
+/* ---------- Responsive Modal ---------- */
 .modal-content {
     background-color:#2f2f2f;
     padding:clamp(20px, 5vw, 45px);
