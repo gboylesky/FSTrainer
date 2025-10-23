@@ -2,243 +2,229 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>FS Randoms Trainer</title>
 <style>
 body {
-    background-color: #1e1e1e;
-    color: white;
-    font-family: 'Segoe UI', sans-serif;
-    margin: 0;
-    padding: 0;
-    text-align: center;
+    background-color:#1e1e1e;
+    color:white;
+    font-family:'Segoe UI',sans-serif;
+    margin:0 auto;
+    padding:0;
+    text-align:center;
+    max-width:480px;
 }
-
-/* Title */
 h1 {
-    font-size: 32px;
-    font-weight: bold;
-    margin: 20px 0 10px 0;
+    font-size:50px;
+    font-weight:bold;
+    margin:20px 0 10px 0;
 }
-
-/* ---------- Content Container ---------- */
 .content {
-    width: 420px;
-    margin: 0 auto;
-    text-align: left;
-    background-color: #1e1e1e;
+    width:100%;
+    text-align:left;
+    padding:0 10px;
 }
-
-/* Headings */
 h2 {
-    font-size: 22px;
-    font-weight: bold;
-    margin: 8px 0 6px 0;
-    text-align: left;
+    font-size:36px;
+    font-weight:bold;
+    margin:8px 0 6px 0;
+    text-align:left;
 }
-.content h2:first-of-type { margin-top: 2px; }
-
 .progress-inline {
-    font-size: 20px;
-    font-weight: bold;
-    color: white;
-    margin-left: 6px;
+    font-size:36px;
+    font-weight:bold;
+    color:white;
+    margin-left:6px;
 }
 
-/* ---------- Slot Banner ---------- */
+/* ---------- Slot banner (fixed-height container to stop flicker) ---------- */
 .slot-banner {
-    width: 420px;
-    margin: 0 auto 10px auto;
+    width:100%;
+    height:40px;                  /* reserve space to prevent flicker */
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    overflow:hidden;
+    margin-bottom:10px;
+    background-color:#1e1e1e;      /* consistent background */
 }
 .slot-banner img {
-    width: 100%;
-    height: auto;
-    display: block;
-    border-radius: 6px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    width:auto;
+    max-width:95%;
+    height:100%;
+    object-fit:contain;
+    border-radius:6px;
+    box-shadow:0 0 10px rgba(0,0,0,0.5);
 }
 
-/* ---------- Image ---------- */
+/* ---------- Image and Overlay ---------- */
 .image-wrapper {
-    position: relative;             /* anchor overlay */
-    width: 100%;
-    height: 420px;                  /* fixed consistent height */
-    background-color: #1e1e1e;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
+    position:relative;
+    width:100%;
+    display:flex;
+    justify-content:center;
+    align-items:center;
 }
-
 .image-wrapper img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;           /* keeps proportions */
-    background-color: #1e1e1e;     /* hides transparent edges */
+    width:100%;
+    height:auto;
 }
-
-/* Overlay feedback */
 .overlay {
-    position: absolute;             /* overlay centred within wrapper */
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 46px;
-    font-weight: bold;
-    opacity: 0;
-    pointer-events: none;
-    white-space: nowrap;
-    transition: opacity 0.7s ease-in-out;
+    position:absolute;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    font-size:70px;
+    font-weight:bold;
+    text-shadow:0 0 15px rgba(0,0,0,0.9);
+    pointer-events:none;
+    white-space:nowrap;
+    opacity:1;
+    animation:fadeout 0.8s ease-in forwards;
 }
-.overlay.show { opacity: 1; }
+@keyframes fadeout {
+    0%,80% {opacity:1;}
+    100% {opacity:0;}
+}
 
 /* ---------- Buttons ---------- */
 .buttons {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 12px;
-    width: 100%;
-    margin: 10px 0 20px 0;
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:12px;
+    margin:10px 0 20px 0;
 }
 .buttons button {
-    font-size: 20px;
-    padding: 8px;
-    border-radius: 8px;
-    background: #333;
-    color: white;
-    border: 2px solid #555;
-    cursor: pointer;
-    transition: background-color 0.2s ease, transform 0.05s ease;
+    font-size:20px;
+    padding:8px;
+    border-radius:8px;
+    background:#333;
+    color:white;
+    border:2px solid #555;
+    cursor:pointer;
 }
-.buttons button:hover { background-color: #444; }
+.buttons button:hover {background-color:#444;}
 .buttons button:active {
-    background-color: #555;
-    transform: scale(0.97);
+    background-color:#555;
+    transform:scale(0.97);
 }
 
-/* ---------- Progress ---------- */
+/* ---------- Progress Bar ---------- */
 .progress-bar-container {
-    background-color: #333;
-    border-radius: 10px;
-    overflow: hidden;
-    height: 25px;
-    width: 100%;
-    margin-bottom: 8px;
+    background-color:#333;
+    border-radius:10px;
+    overflow:hidden;
+    height:25px;
+    width:100%;
+    margin-bottom:8px;
 }
 .progress-bar {
-    height: 100%;
-    background-color: lime;
-    width: 0%;
-    transition: width 0.3s ease-in-out;
+    height:100%;
+    background-color:lime;
+    width:{{ (progress/total*100) if total>0 else 0 }}%;
+    transition:width 0.3s ease-in-out;
 }
 
-/* ---------- Modal ---------- */
+/* ---------- Modal (Results) ---------- */
 .modal {
-    display: none;
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background-color: rgba(0,0,0,0.7);
-    justify-content: center;
-    align-items: center;
-    z-index: 999;
+    display:{% if show_results %}flex{% else %}none{% endif %};
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background-color:rgba(0,0,0,0.7);
+    justify-content:center;
+    align-items:center;
+    z-index:999;
 }
+
+/* Larger modal styling */
 .modal-content {
-    background-color: #2f2f2f;
-    padding: 25px 30px;
-    border-radius: 10px;
-    box-shadow: 0 0 20px rgba(0,0,0,0.6);
-    text-align: center;
-    position: relative;
-    width: 187px;
+    background-color:#2f2f2f;
+    padding:40px 45px;
+    border-radius:12px;
+    text-align:center;
+    width:330px;
+    position:relative;
 }
-.modal-content h2 { margin-top: 0; margin-bottom: 10px; font-size: 26px; }
-.modal-content p { font-size: 20px; margin: 6px 0; }
-.close-btn {
-    position: absolute;
-    top: 8px;
-    right: 12px;
-    font-size: 22px;
-    font-weight: bold;
-    color: #aaa;
-    cursor: pointer;
+.modal-content h2 {
+    margin:0 0 15px 0;
+    font-size:38px;
 }
-.close-btn:hover { color: white; }
+.modal-content p {
+    font-size:30px;
+    margin:10px 0;
+}
+.close-x {
+    position:absolute;
+    top:10px;
+    right:18px;
+    font-size:30px;
+    color:#aaa;
+    font-weight:bold;
+    cursor:pointer;
+}
+.close-x:hover {color:white;}
 </style>
 </head>
 <body>
 <h1>FS Randoms Trainer</h1>
 
-<!-- Slot Banner -->
+<!-- Fixed-size banner prevents flicker -->
 <div class="slot-banner">
-    <img src="{{ url_for('static', filename='Slots.png') }}" alt="Slot Positions">
+  <img src="{{ url_for('static', filename='Slots.png') }}" alt="Slot Positions">
 </div>
 
 <div class="content">
-    <h2>Formation</h2>
+  <h2>Formation</h2>
+  <div class="image-wrapper" id="image-area">
+    <img src="data:image/png;base64,{{ img_data }}" alt="Formation">
+    {% if msg %}
+    <div id="overlay" class="overlay" style="color:{{ color }}">{{ msg }}</div>
+    {% endif %}
+  </div>
 
-    <div class="image-wrapper">
-        <img src="data:image/png;base64,{{ img_data }}" alt="Formation Image">
-        {% if msg %}
-        <div id="overlay" class="overlay show" style="color: {{ color }}">{{ msg }}</div>
-        {% endif %}
-    </div>
+  <h2>Letter</h2>
+  <form method="POST" class="buttons" id="guessForm">
+    {% for label in labels %}
+    <button type="submit" name="guess" value="{{ label }}">{{ label }}</button>
+    {% endfor %}
+  </form>
 
-    <h2>Letter</h2>
-    <form method="POST" class="buttons">
-        {% for label in labels %}
-        <button type="submit" name="guess" value="{{ label }}">{{ label }}</button>
-        {% endfor %}
-    </form>
-
-    <h2>
-        Progress <span class="progress-inline">({{ progress }} of {{ total }})</span>
-    </h2>
-
-    <div class="progress-bar-container">
-        <div class="progress-bar" id="progress-bar"
-             style="width: {{ (progress / total * 100) if total > 0 else 0 }}%;"></div>
-    </div>
+  <h2>
+    Progress <span class="progress-inline">({{ progress }} of {{ total }})</span>
+  </h2>
+  <div class="progress-bar-container">
+    <div class="progress-bar"></div>
+  </div>
 </div>
 
 <!-- Results Modal -->
-<div id="resultsModal" class="modal">
-    <div class="modal-content">
-        <span class="close-btn" onclick="closeAndReset()">&times;</span>
-        <h2>Results</h2>
-        <p style="color: lime;">✅ Correct: {{ correct }}</p>
-        <p style="color: red;">❌ Incorrect: {{ incorrect }}</p>
-    </div>
+<div class="modal" id="resultsModal">
+  <div class="modal-content">
+    <span class="close-x" onclick="closeResults()">×</span>
+    <h2>Results</h2>
+    <p style="color:lime;">✅ Correct: {{ correct }}</p>
+    <p style="color:red;">❌ Incorrect: {{ incorrect }}</p>
+  </div>
 </div>
 
 <script>
-window.addEventListener('DOMContentLoaded', () => {
-    const overlay = document.getElementById('overlay');
-    const showNext = {{ 'true' if show_next else 'false' }};
-    const showResults = {{ 'true' if show_results else 'false' }};
+document.addEventListener('DOMContentLoaded',()=>{
+  const overlay=document.getElementById('overlay');
+  const showResults={{ 'true' if show_results else 'false' }};
 
-    if (overlay) {
-        setTimeout(() => overlay.classList.remove('show'), 700);
-        if (showNext) {
-            setTimeout(() => {
-                window.location.href = "{{ url_for('next_step') }}";
-            }, 1000);
-        }
-    }
+  // Only auto-advance when NOT showing results
+  if(!overlay || showResults) return;
 
-    if (showResults) {
-        document.getElementById('resultsModal').style.display = 'flex';
-    }
+  if(overlay.textContent.trim().includes('Correct')){
+    setTimeout(()=>{window.location.href="{{ url_for('next_step') }}";},800);
+  }
 });
 
-function closeAndReset() {
-    const modal = document.getElementById('resultsModal');
-    modal.style.opacity = '1';
-    modal.style.transition = 'opacity 0.5s ease-out';
-    modal.style.opacity = '0';
-    setTimeout(() => {
-        modal.style.display = 'none';
-        window.location.href = "{{ url_for('reset') }}";
-    }, 500);
+function closeResults(){
+  window.location.href="{{ url_for('reset') }}";
 }
 </script>
 </body>

@@ -1,116 +1,120 @@
+import os
+import random
+import base64
 from flask import Flask, render_template, request, redirect, url_for
-from PIL import Image
-import os, random, base64
-from io import BytesIO
 
 app = Flask(__name__)
 
-# ---------------- Settings ----------------
-ImageFolder = r"C:\Users\GB\Desktop\FS Trainer Web\Randoms"
-Labels = ['A','B','C','D','E','F','G','H','J','K','L','M','N','O','P','Q']
-MaxImageWidth = 500
-MaxImageHeight = 300
+# ---------------------------
+# Configuration
+# ---------------------------
+IMAGE_FOLDER = os.path.join(app.static_folder, "Randoms")
+LABELS = ['A','B','C','D','E','F','G','H','J','K','L','M','N','O','P','Q']
 
-# ---------------- Load Images ----------------
-images = {}
-if os.path.isdir(ImageFolder):
-    for f in sorted(os.listdir(ImageFolder)):
-        if f.lower().endswith((".png", ".jpg", ".jpeg")):
-            lbl = os.path.splitext(f)[0].upper()
-            try:
-                img = Image.open(os.path.join(ImageFolder, f))
-                img.thumbnail((MaxImageWidth, MaxImageHeight))
-                buf = BytesIO()
-                img.save(buf, format="PNG")
-                images[lbl] = base64.b64encode(buf.getvalue()).decode("utf-8")
-            except Exception as e:
-                print(f"Skipping {f}: {e}")
-
-# ---------------- State ----------------
 state = {
-    "remaining": list(images.keys()),
+    "remaining": LABELS.copy(),
     "current": None,
     "correct": 0,
     "incorrect": 0,
-    "index": 0,
-    "bad": False
+    "attempted_wrong": False
 }
+
+
+# ---------------------------
+# Helpers
+# ---------------------------
+def get_image_base64(label):
+    path = os.path.join(IMAGE_FOLDER, f"{label}.png")
+    if not os.path.exists(path):
+        print(f"⚠️ Missing: {path}")
+        return ""
+    with open(path, "rb") as f:
+        return base64.b64encode(f.read()).decode("utf-8")
+
 
 def next_image():
     """Advance to the next random image."""
+    if state["current"] in state["remaining"]:
+        state["remaining"].remove(state["current"])
     if not state["remaining"]:
-        state["remaining"] = list(images.keys())
-    state["bad"] = False
+        state["remaining"] = LABELS.copy()
     state["current"] = random.choice(state["remaining"])
-    state["remaining"].remove(state["current"])
+    state["attempted_wrong"] = False
 
-# ---------------- Routes ----------------
+
+def set_first_image():
+    """Pick the first image if none set."""
+    if not state["current"]:
+        state["current"] = random.choice(state["remaining"])
+        state["attempted_wrong"] = False
+
+
+# ---------------------------
+# Routes
+# ---------------------------
 @app.route("/", methods=["GET", "POST"])
 def home():
-    if state["current"] is None:
-        next_image()
-
-    msg, color = None, None
+    msg = ""
+    color = "white"
+    show_results = False
     show_next = False
-    show_results = False  # NEW FLAG to handle end-of-sequence modal
+
+    set_first_image()
 
     if request.method == "POST":
         guess = request.form.get("guess")
-        if guess == state["current"]:
-            state["index"] += 1
-            if not state["bad"]:
-                state["correct"] += 1
-            msg, color = "✅ Correct!", "lime"
 
-            # If finished all images, trigger results instead of next image
-            if state["index"] >= len(images):
+        if guess == state["current"]:
+            msg = "✅ Correct"
+            color = "lime"
+            if not state["attempted_wrong"]:
+                state["correct"] += 1
+
+            # Finished?
+            if len(state["remaining"]) == 1:
                 show_results = True
             else:
                 show_next = True
+
         else:
-            state["incorrect"] += 1
-            state["bad"] = True
-            msg, color = "❌ Try Again", "red"
+            msg = "❌ Try Again"
+            color = "red"
+            if not state["attempted_wrong"]:
+                state["incorrect"] += 1
+                state["attempted_wrong"] = True
 
-    img_data = images[state["current"]]
-    progress = state["index"]
-    total = len(images)
-
+    img_data = get_image_base64(state["current"])
     return render_template(
         "index.html",
         img_data=img_data,
-        labels=Labels,
         msg=msg,
         color=color,
+        labels=LABELS,
+        progress=state["correct"],
+        total=len(LABELS),
         correct=state["correct"],
         incorrect=state["incorrect"],
-        progress=progress,
-        total=total,
-        show_next=show_next,
         show_results=show_results,
+        show_next=show_next
     )
+
 
 @app.route("/next")
 def next_step():
-    # Only advance if not finished
-    if state["index"] < len(images):
-        next_image()
-    return redirect(url_for("home"))
-
-@app.route("/reset")
-def reset():
-    """Reset all progress and start again."""
-    state.update({
-        "remaining": list(images.keys()),
-        "current": None,
-        "correct": 0,
-        "incorrect": 0,
-        "index": 0,
-        "bad": False
-    })
     next_image()
     return redirect(url_for("home"))
 
+
+@app.route("/reset")
+def reset():
+    state["remaining"] = LABELS.copy()
+    state["current"] = None
+    state["correct"] = 0
+    state["incorrect"] = 0
+    state["attempted_wrong"] = False
+    return redirect(url_for("home"))
+
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+    app.run(host="0.0.0.0", port=port, debug=True)
