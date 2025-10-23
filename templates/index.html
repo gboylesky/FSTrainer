@@ -149,28 +149,29 @@ h2 {
     z-index:999;
 }
 
-/* Larger modal styling */
+/* ✅ Responsive modal scaling added */
 .modal-content {
     background-color:#2f2f2f;
-    padding:40px 45px;
+    padding:clamp(20px, 5vw, 45px);
     border-radius:12px;
     text-align:center;
-    width:330px;
+    width:clamp(240px, 70%, 330px);
     position:relative;
+    box-sizing:border-box;
 }
 .modal-content h2 {
     margin:0 0 15px 0;
-    font-size:38px;
+    font-size:clamp(26px, 6vw, 38px);
 }
 .modal-content p {
-    font-size:30px;
+    font-size:clamp(20px, 5vw, 30px);
     margin:10px 0;
 }
 .close-x {
     position:absolute;
     top:10px;
     right:18px;
-    font-size:30px;
+    font-size:clamp(22px, 6vw, 30px);
     color:#aaa;
     font-weight:bold;
     cursor:pointer;
