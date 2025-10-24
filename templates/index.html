@@ -6,16 +6,15 @@
 <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
 <title>FS Randoms Trainer</title>
 <style>
-
+/* ---------- Lock screen ---------- */
 html, body {
   margin: 0;
   padding: 0;
   width: 100%;
-  min-height: 100vh;           /* allows body to expand fully */
-  overflow-x: hidden;          /* block sideways scroll only */
-  overflow-y: hidden;          /* stops vertical scroll */
-  overscroll-behavior: none;
-  touch-action: manipulation;
+  height: 100vh;               /* lock viewport height */
+  overflow: hidden;            /* no scrolling in any direction */
+  overscroll-behavior: none;   /* no rubber-band effect */
+  touch-action: manipulation;  /* allows taps but blocks scroll gestures */
 }
 
 /* ---------- Body styling ---------- */
@@ -28,11 +27,10 @@ body {
   margin:0 auto;
   padding:0;
   box-sizing:border-box;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start; /* keeps title + banner at top */
-  transition: height 0.4s ease, min-height 0.4s ease;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:flex-start;  /* keep title + banner at top */
 }
 
 /* ---------- Title ---------- */
