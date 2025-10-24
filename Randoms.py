@@ -144,4 +144,4 @@ def Guess():
 
 if __name__ == "__main__":
     Port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=Port, debug=True)
+    app.run(host="0.0.0.0", port=Port)
