@@ -92,14 +92,20 @@ def NextStep():
     NextImage()
     return redirect(url_for("Home"))
 
-@app.route("/Reset")
-def Reset():
+@app.route("/ResetJson")
+def ResetJson():
     State["Remaining"] = Labels.copy()
     State["Current"] = None
     State["Correct"] = 0
     State["Incorrect"] = 0
     State["AttemptedWrong"] = False
-    return redirect(url_for("Home"))
+    SetFirstImage()
+    ImgData = GetImageBase64(State["Current"])
+    return jsonify({
+        "img_data": ImgData,
+        "progress": State["Correct"],
+        "total": len(Labels)
+    })
 
 # ---------------------------
 # New AJAX Route

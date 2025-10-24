@@ -314,8 +314,26 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function closeResults() {
-  window.location.href = "{{ url_for('Reset') }}";
+  const modal = document.getElementById("resultsModal");
+  modal.style.display = "none";
+
+  // Fetch reset data from server
+  fetch("/Reset")
+    .then(r => r.json())
+    .then(data => {
+      // Update image
+      const ImgEl = document.getElementById("formation-image");
+      ImgEl.src = "data:image/png;base64," + data.img_data;
+
+      // Reset progress bar
+      const ProgressInline = document.querySelector(".progress-inline");
+      const ProgressBar = document.querySelector(".progress-bar");
+      if (ProgressInline) ProgressInline.textContent = `(${data.progress} of ${data.total})`;
+      if (ProgressBar) ProgressBar.style.width = `${(data.progress / data.total) * 100}%`;
+    })
+    .catch(err => console.error("Error resetting:", err));
 }
+
 </script>
 </body>
 </html>
