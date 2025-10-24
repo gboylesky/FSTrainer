@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="theme-color" content="#1e1e1e">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>FS Randoms Trainer</title>
 <style>
 html, body {
@@ -21,22 +21,6 @@ body {
     text-align:center;
     max-width:480px;
     margin:0 auto;
-}
-
-/* ---------- FIX: Maintain perfect fit on smaller phones ---------- */
-@media (max-height: 850px) {
-  html, body {
-    height: 100dvh;            /* match exact device viewport height */
-    overflow-y: hidden;        /* prevent vertical overflow */
-  }
-  body {
-    transform: scale(0.95);    /* small shrink for perfect fit */
-    transform-origin: top center;
-  }
-}
-
-@media (max-height: 750px) {
-  body { transform: scale(0.9); }
 }
 
 /* ---------- Title ---------- */
@@ -288,7 +272,7 @@ document.addEventListener("DOMContentLoaded", () => {
         overlay.style.animation = "fadeout 1.2s ease-in forwards";
 
         // --- Wait for overlay fade before changing image ---
-        const Delay = 1200; // match fade duration
+        const Delay = 1200;
         setTimeout(() => {
           ImgEl.classList.add("fade-out");
           setTimeout(() => {
