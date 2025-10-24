@@ -30,7 +30,6 @@ h1 {
 .content {
     width:100%;
     text-align:left;
-    padding:0 0px;
 }
 
 /* ---------- Headings ---------- */
@@ -294,7 +293,7 @@ document.addEventListener("DOMContentLoaded", () => {
           return;
         }
 
-        // ✅ Overlay feedback and image transition
+        // ✅ Overlay feedback
         let overlay = document.getElementById("overlay");
         if (overlay) overlay.remove();
         overlay = document.createElement("div");
@@ -305,20 +304,24 @@ document.addEventListener("DOMContentLoaded", () => {
         document.querySelector(".image-wrapper").appendChild(overlay);
         overlay.style.animation = "fadeout 0.8s ease-in forwards";
 
-        const Delay = 800;
-        setTimeout(() => {
-          ImgEl.classList.add("fade-out");
+        // ✅ Only fade/change image if correct
+        if (data.color !== "red") {
+          const Delay = 800;
           setTimeout(() => {
-            ImgEl.src = "data:image/png;base64," + data.img_data;
-            ImgEl.onload = () => {
-              ImgEl.classList.remove("fade-out");
-              ImgEl.classList.add("fade-in");
-              setTimeout(() => ImgEl.classList.remove("fade-in"), 300);
-              // ✅ Re-enable buttons after animation completes
-              setTimeout(() => Buttons.forEach(b => b.disabled = false), 400);
-            };
-          }, 150);
-        }, Delay);
+            ImgEl.classList.add("fade-out");
+            setTimeout(() => {
+              ImgEl.src = "data:image/png;base64," + data.img_data;
+              ImgEl.onload = () => {
+                ImgEl.classList.remove("fade-out");
+                ImgEl.classList.add("fade-in");
+                setTimeout(() => ImgEl.classList.remove("fade-in"), 300);
+              };
+            }, 150);
+          }, Delay);
+        }
+
+        // ✅ Re-enable buttons after animation completes
+        setTimeout(() => Buttons.forEach(b => b.disabled = false), 900);
       })
       .catch(err => console.error("Error:", err));
     });
