@@ -23,6 +23,22 @@ body {
     margin:0 auto;
 }
 
+/* ---------- FIX: Maintain perfect fit on smaller phones ---------- */
+@media (max-height: 850px) {
+  html, body {
+    height: 100dvh;            /* match exact device viewport height */
+    overflow-y: hidden;        /* prevent vertical overflow */
+  }
+  body {
+    transform: scale(0.95);    /* small shrink for perfect fit */
+    transform-origin: top center;
+  }
+}
+
+@media (max-height: 750px) {
+  body { transform: scale(0.9); }
+}
+
 /* ---------- Title ---------- */
 h1 {
     font-size: clamp(32px, 6vw, 50px);
