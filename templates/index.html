@@ -10,13 +10,10 @@ html, body {
   margin: 0;
   padding: 0;
   width: 100%;
-  height: 100dvh;             /* dynamic viewport height, fills full screen */
-  overflow: hidden;           /* disables all scrolling */
-  overscroll-behavior: none;  /* prevents bounce */
-  touch-action: manipulation; /* keeps taps working */
-  box-sizing: border-box;
+  overflow-x: hidden;          /* stop sideways drag */
+  overscroll-behavior: none;   /* stop rubber-band bounce */
+  touch-action: manipulation;  /* allow taps, block scroll flicks */
 }
-
 body {
     background-color:#1e1e1e;
     color:white;
