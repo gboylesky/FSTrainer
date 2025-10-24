@@ -266,25 +266,31 @@ document.addEventListener("DOMContentLoaded", () => {
     btn.addEventListener("click", () => {
       const Guess = btn.value;
 
+      // 🚫 Disable buttons during animation to prevent double-taps
+      Buttons.forEach(b => b.disabled = true);
+
       fetch("/Guess", {
         method: "POST",
         body: new URLSearchParams({ guess: Guess })
       })
       .then(r => r.json())
       .then(data => {
-        // ✅ Always update progress and bar first, even on last correct
+        // ✅ Always update progress and bar first
         if (ProgressInline) ProgressInline.textContent = `(${data.progress} of ${data.total})`;
         if (ProgressBar) {
           const Percent = (data.progress / data.total) * 100;
           ProgressBar.style.width = `${Percent}%`;
         }
 
-        // ✅ Now handle completion
+        // ✅ Handle completion with slight delay for visual clarity
         if (data.done) {
-          document.getElementById("resultsModal").style.display = "flex";
-          const modal = document.querySelector(".modal-content");
-          modal.querySelector("p:nth-child(3)").textContent = `✅ Correct: ${data.correct}`;
-          modal.querySelector("p:nth-child(4)").textContent = `❌ Incorrect: ${data.incorrect}`;
+          setTimeout(() => {
+            document.getElementById("resultsModal").style.display = "flex";
+            const modal = document.querySelector(".modal-content");
+            modal.querySelector("p:nth-child(3)").textContent = `✅ Correct: ${data.correct}`;
+            modal.querySelector("p:nth-child(4)").textContent = `❌ Incorrect: ${data.incorrect}`;
+          }, 400);
+          Buttons.forEach(b => b.disabled = false);
           return;
         }
 
@@ -308,6 +314,8 @@ document.addEventListener("DOMContentLoaded", () => {
               ImgEl.classList.remove("fade-out");
               ImgEl.classList.add("fade-in");
               setTimeout(() => ImgEl.classList.remove("fade-in"), 300);
+              // ✅ Re-enable buttons after animation completes
+              setTimeout(() => Buttons.forEach(b => b.disabled = false), 400);
             };
           }, 150);
         }, Delay);
@@ -318,7 +326,22 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function closeResults() {
-  window.location.href = "{{ url_for('Reset') }}";
+  fetch("/Reset", { method: "POST" })
+    .then(r => r.json())
+    .then(data => {
+      const ImgEl = document.getElementById("formation-image");
+      ImgEl.src = "data:image/png;base64," + data.img_data;
+      ImgEl.classList.add("fade-in");
+      setTimeout(() => ImgEl.classList.remove("fade-in"), 300);
+
+      const ProgressInline = document.querySelector(".progress-inline");
+      const ProgressBar = document.querySelector(".progress-bar");
+      ProgressInline.textContent = `(${data.progress} of ${data.total})`;
+      ProgressBar.style.width = `${(data.progress / data.total) * 100}%`;
+
+      document.getElementById("resultsModal").style.display = "none";
+    })
+    .catch(err => console.error("Error resetting:", err));
 }
 </script>
 </body>

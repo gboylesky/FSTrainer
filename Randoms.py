@@ -23,12 +23,12 @@ State = {
 # Helpers
 # ---------------------------
 def GetImageBase64(Label):
-    Path = os.path.join(ImageFolder, f"{Label}.png")
-    if not os.path.exists(Path):
-        print(f"⚠️ Missing: {Path}")
+    path = os.path.join(ImageFolder, f"{Label}.png")
+    if not os.path.exists(path):
+        print(f"⚠️ Missing: {path}")
         return ""
-    with open(Path, "rb") as F:
-        return base64.b64encode(F.read()).decode("utf-8")
+    with open(path, "rb") as f:
+        return base64.b64encode(f.read()).decode("utf-8")
 
 def NextImage():
     if State["Current"] in State["Remaining"]:
@@ -49,10 +49,10 @@ def SetFirstImage():
 @app.route("/", methods=["GET"])
 def Home():
     SetFirstImage()
-    ImgData = GetImageBase64(State["Current"])
+    img_data = GetImageBase64(State["Current"])
     return render_template(
         "index.html",
-        img_data=ImgData,
+        img_data=img_data,
         msg="",
         color="white",
         labels=Labels,
@@ -66,61 +66,60 @@ def Home():
 
 @app.route("/Guess", methods=["POST"])
 def Guess():
-    GuessLabel = request.form.get("guess")
-    if not GuessLabel:
+    guess_label = request.form.get("guess")
+    if not guess_label:
         return jsonify({"error": "Missing guess"}), 400
     if not State["Current"]:
         SetFirstImage()
 
-    if GuessLabel == State["Current"]:
-        Msg = "✅ Correct"
-        Color = "lime"
+    if guess_label == State["Current"]:
+        msg = "✅ Correct"
+        color = "lime"
         if not State["AttemptedWrong"]:
             State["Correct"] += 1
 
-        # ✅ FIX: Properly increment and reflect final progress
+        # Check if that was the last one
         if len(State["Remaining"]) == 1:
             State["Remaining"].remove(State["Current"])
-            DoneProgress = State["Correct"]  # capture latest value
+            done_progress = State["Correct"]
             return jsonify({
                 "done": True,
-                "correct": DoneProgress,
+                "correct": done_progress,
                 "incorrect": State["Incorrect"],
-                "progress": DoneProgress,
+                "progress": done_progress,
                 "total": len(Labels)
             })
 
         NextImage()
-
     else:
-        Msg = "❌ Try Again"
-        Color = "red"
+        msg = "❌ Try Again"
+        color = "red"
         if not State["AttemptedWrong"]:
             State["Incorrect"] += 1
             State["AttemptedWrong"] = True
 
-    ImgData = GetImageBase64(State["Current"])
+    img_data = GetImageBase64(State["Current"])
     return jsonify({
-        "img_data": ImgData,
-        "msg": Msg,
-        "color": Color,
+        "img_data": img_data,
+        "msg": msg,
+        "color": color,
         "progress": State["Correct"],
         "total": len(Labels),
         "correct": State["Correct"],
         "incorrect": State["Incorrect"]
     })
 
-@app.route("/Reset")
+@app.route("/Reset", methods=["POST"])
 def Reset():
     State["Remaining"] = Labels.copy()
     State["Current"] = None
     State["Correct"] = 0
     State["Incorrect"] = 0
     State["AttemptedWrong"] = False
-    NextImage()  # ✅ ensures a brand new image after reset
-    ImgData = GetImageBase64(State["Current"])
+    SetFirstImage()
+    img_data = GetImageBase64(State["Current"])
     return jsonify({
-        "img_data": ImgData,
+        "img_data": img_data,
         "progress": State["Correct"],
         "total": len(Labels)
     })
@@ -129,5 +128,5 @@ def Reset():
 # Entry point
 # ---------------------------
 if __name__ == "__main__":
-    Port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=Port, debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=True)
