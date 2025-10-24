@@ -15,6 +15,7 @@ body {
     text-align:center;
     max-width:480px;
     overflow-x:hidden;
+    overflow-y:hidden;  /* ✅ Prevents vertical scroll */
 }
 
 /* ---------- Title ---------- */
@@ -140,8 +141,9 @@ h2 {
     overflow:hidden;
     height:25px;
     width:100%;
-    margin-bottom:8px;
+    margin-bottom:0;     /* ✅ Remove that bottom margin */
 }
+
 .progress-bar {
     height:100%;
     background-color:lime;
