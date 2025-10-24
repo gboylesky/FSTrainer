@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="theme-color" content="#1e1e1e">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>FS Randoms Trainer</title>
 <style>
@@ -46,17 +47,17 @@ h2 {
     margin-left:6px;
 }
 
-/* ---------- Slot banner (fixed-height container to stop flicker) ---------- */
+/* ---------- Slot banner ---------- */
 .slot-banner {
     width:100%;
-    height:40px;                  /* reserve space to prevent flicker */
+    height:40px;
     display:flex;
     justify-content:center;
     align-items:center;
     overflow:hidden;
     margin-bottom:10px;
     background-color:#1e1e1e;
-    margin-left:10px; /* shift image slightly to the right */
+    margin-left:10px;
 }
 .slot-banner img {
     width:auto;
@@ -74,11 +75,18 @@ h2 {
     display:flex;
     justify-content:center;
     align-items:center;
+    background-color:#1e1e1e;
+    overflow:hidden;
 }
 .image-wrapper img {
     width:100%;
     height:auto;
+    opacity:1;
+    transition:opacity 0.3s ease-in-out;
 }
+.image-wrapper img.fade-out {opacity:0;}
+.image-wrapper img.fade-in {opacity:1;}
+
 .overlay {
     position:absolute;
     top:50%;
@@ -100,7 +108,7 @@ h2 {
 /* ✅ Stronger, deeper green for mobile */
 @media (max-width: 768px) {
   .overlay[style*="lime"] {
-      color: #00e600 !important; /* vivid OLED-safe green */
+      color: #00e600 !important;
       text-shadow: 0 0 20px rgba(0, 255, 0, 0.9);
   }
 }
@@ -147,14 +155,12 @@ h2 {
 .modal {
     display:{% if show_results %}flex{% else %}none{% endif %};
     position:fixed;
-    inset:0; /* precise, no gap */
-    background:none; /* remove translucent layer */
+    inset:0;
+    background:none;
     justify-content:center;
     align-items:center;
     z-index:999;
 }
-
-/* ---------- Responsive Modal ---------- */
 .modal-content {
     background-color:#2f2f2f;
     padding:clamp(20px, 5vw, 45px);
@@ -183,9 +189,7 @@ h2 {
 }
 .close-x:hover {color:white;}
 
-/* ---------- Responsive height scaling (small, medium, tall phones) ---------- */
-
-/* 1️⃣ Very short screens (≤750px) */
+/* ---------- Responsive height scaling ---------- */
 @media (max-height: 750px) {
   body { transform: scale(0.9); transform-origin: top center; }
   h1 { font-size: clamp(24px, 5vw, 36px); margin: 8px 0 4px 0; }
@@ -197,8 +201,6 @@ h2 {
   .progress-bar-container { height: 18px; margin-bottom: 4px; }
   .slot-banner { height: 30px; }
 }
-
-/* 2️⃣ Typical phones (≤850px) */
 @media (max-height: 850px) {
   h1 { font-size: clamp(28px, 5vw, 40px); margin: 12px 0 6px 0; }
   h2 { font-size: clamp(22px, 4.5vw, 30px); margin: 6px 0 4px 0; }
@@ -207,8 +209,6 @@ h2 {
   .buttons button { font-size: 18px; padding: 6px; }
   .slot-banner { height: 35px; }
 }
-
-/* 3️⃣ Tall phones & tablets (≥900px) */
 @media (min-height: 900px) {
   h1 { font-size: clamp(36px, 6vw, 50px); }
   h2 { font-size: clamp(28px, 5vw, 38px); }
@@ -221,7 +221,7 @@ h2 {
 <body>
 <h1>FS Randoms Trainer</h1>
 
-<!-- Fixed-size banner prevents flicker -->
+<!-- Fixed-size banner -->
 <div class="slot-banner">
   <img src="{{ url_for('static', filename='Slots.png') }}" alt="Slot Positions">
 </div>
@@ -229,16 +229,16 @@ h2 {
 <div class="content">
   <h2>Formation</h2>
   <div class="image-wrapper" id="image-area">
-    <img src="data:image/png;base64,{{ img_data }}" alt="Formation">
+    <img id="formation-image" src="data:image/png;base64,{{ img_data }}" alt="Formation">
     {% if msg %}
     <div id="overlay" class="overlay" style="color:{{ color }}">{{ msg }}</div>
     {% endif %}
   </div>
 
   <h2>Letter</h2>
-  <form method="POST" class="buttons" id="guessForm">
+  <form class="buttons" id="GuessForm">
     {% for label in labels %}
-    <button type="submit" name="guess" value="{{ label }}">{{ label }}</button>
+    <button type="button" value="{{ label }}">{{ label }}</button>
     {% endfor %}
   </form>
 
@@ -261,20 +261,67 @@ h2 {
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded',()=>{
-  const overlay=document.getElementById('overlay');
-  const showResults={{ 'true' if show_results else 'false' }};
+document.addEventListener("DOMContentLoaded", () => {
+  const ImgEl = document.getElementById("formation-image");
+  const ProgressInline = document.querySelector(".progress-inline");
+  const ProgressBar = document.querySelector(".progress-bar");
+  const Buttons = document.querySelectorAll("#GuessForm button");
 
-  // Only auto-advance when NOT showing results
-  if(!overlay || showResults) return;
+  Buttons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const Guess = btn.value;
 
-  if(overlay.textContent.trim().includes('Correct')){
-    setTimeout(()=>{window.location.href="{{ url_for('next_step') }}";},800);
-  }
+      fetch("/Guess", {
+        method: "POST",
+        body: new URLSearchParams({ guess: Guess })
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.done) {
+          document.getElementById("resultsModal").style.display = "flex";
+          document.querySelector(".modal-content p:nth-child(3)").textContent = `✅ Correct: ${data.correct}`;
+          document.querySelector(".modal-content p:nth-child(4)").textContent = `❌ Incorrect: ${data.incorrect}`;
+          return;
+        }
+
+        // Fade image transition
+        ImgEl.classList.add("fade-out");
+        setTimeout(() => {
+          ImgEl.src = "data:image/png;base64," + data.img_data;
+          ImgEl.onload = () => {
+            ImgEl.classList.remove("fade-out");
+            ImgEl.classList.add("fade-in");
+            setTimeout(() => ImgEl.classList.remove("fade-in"), 300);
+          };
+        }, 150);
+
+        // Overlay feedback
+        let overlay = document.getElementById("overlay");
+        if (!overlay) {
+          overlay = document.createElement("div");
+          overlay.id = "overlay";
+          overlay.className = "overlay";
+          document.querySelector(".image-wrapper").appendChild(overlay);
+        }
+        overlay.style.color = data.color;
+        overlay.textContent = data.msg;
+        overlay.style.opacity = 1;
+        overlay.style.animation = "fadeout 0.8s ease-in forwards";
+
+        // Progress updates
+        if (ProgressInline) ProgressInline.textContent = `(${data.progress} of ${data.total})`;
+        if (ProgressBar) {
+          const Percent = (data.progress / data.total) * 100;
+          ProgressBar.style.width = `${Percent}%`;
+        }
+      })
+      .catch(err => console.error("Error:", err));
+    });
+  });
 });
 
-function closeResults(){
-  window.location.href="{{ url_for('reset') }}";
+function closeResults() {
+  window.location.href = "{{ url_for('Reset') }}";
 }
 </script>
 </body>
