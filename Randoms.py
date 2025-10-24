@@ -78,13 +78,16 @@ def Guess():
         if not State["AttemptedWrong"]:
             State["Correct"] += 1
 
-        # If last remaining image
+        # ✅ FIX: Properly increment and reflect final progress
         if len(State["Remaining"]) == 1:
             State["Remaining"].remove(State["Current"])
+            DoneProgress = State["Correct"]  # capture latest value
             return jsonify({
                 "done": True,
-                "correct": State["Correct"],
-                "incorrect": State["Incorrect"]
+                "correct": DoneProgress,
+                "incorrect": State["Incorrect"],
+                "progress": DoneProgress,
+                "total": len(Labels)
             })
 
         NextImage()
