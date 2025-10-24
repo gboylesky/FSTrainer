@@ -6,25 +6,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>FS Randoms Trainer</title>
 <style>
-html, body {
-    width:100%;
-    height:100vh;           /* fit visible screen height */
-    margin:0;
-    padding:0;
-    overflow-x:hidden;
-    overflow-y:hidden;      /* prevent vertical scroll */
-}
-
 body {
     background-color:#1e1e1e;
     color:white;
     font-family:'Segoe UI',sans-serif;
+    margin:0 auto;
+    padding:0;
     text-align:center;
     max-width:480px;
-    margin:0 auto;
-    display:flex;
-    flex-direction:column;
-    justify-content:space-between; /* distribute vertical space neatly */
 }
 
 /* ---------- Title ---------- */
@@ -76,6 +65,7 @@ h2 {
     object-fit:contain;
     border-radius:6px;
     box-shadow:0 0 10px rgba(0,0,0,0.5);
+    margin-left:20px; /* shift image slightly to the right */
 }
 
 /* ---------- Image and Overlay ---------- */
@@ -207,29 +197,27 @@ h2 {
   <img src="{{ url_for('static', filename='Slots.png') }}" alt="Slot Positions">
 </div>
 
-<div style="flex:1; overflow:hidden;">
-  <div class="content">
-    <h2>Formation</h2>
-    <div class="image-wrapper" id="image-area">
-      <img id="formation-image" src="data:image/png;base64,{{ img_data }}" alt="Formation">
-      {% if msg %}
-      <div id="overlay" class="overlay" style="color:{{ color }}">{{ msg }}</div>
-      {% endif %}
-    </div>
+<div class="content">
+  <h2>Formation</h2>
+  <div class="image-wrapper" id="image-area">
+    <img id="formation-image" src="data:image/png;base64,{{ img_data }}" alt="Formation">
+    {% if msg %}
+    <div id="overlay" class="overlay" style="color:{{ color }}">{{ msg }}</div>
+    {% endif %}
+  </div>
 
-    <h2>Letter</h2>
-    <form class="buttons" id="GuessForm">
-      {% for label in labels %}
-      <button type="button" value="{{ label }}">{{ label }}</button>
-      {% endfor %}
-    </form>
+  <h2>Letter</h2>
+  <form class="buttons" id="GuessForm">
+    {% for label in labels %}
+    <button type="button" value="{{ label }}">{{ label }}</button>
+    {% endfor %}
+  </form>
 
-    <h2>
-      Progress <span class="progress-inline">({{ progress }} of {{ total }})</span>
-    </h2>
-    <div class="progress-bar-container">
-      <div class="progress-bar"></div>
-    </div>
+  <h2>
+    Progress <span class="progress-inline">({{ progress }} of {{ total }})</span>
+  </h2>
+  <div class="progress-bar-container">
+    <div class="progress-bar"></div>
   </div>
 </div>
 
