@@ -14,6 +14,7 @@ body {
     padding:0;
     text-align:center;
     max-width:480px;
+    min-height: 100dvh;
 }
 
 /* ---------- Title ---------- */
@@ -273,11 +274,12 @@ document.addEventListener("DOMContentLoaded", () => {
       .then(r => r.json())
       .then(data => {
         if (data.done) {
-          document.getElementById("resultsModal").style.display = "flex";
-          document.querySelector(".modal-content p:nth-child(3)").textContent = `✅ Correct: ${data.correct}`;
-          document.querySelector(".modal-content p:nth-child(4)").textContent = `❌ Incorrect: ${data.incorrect}`;
-          return;
-        }
+          // ✅ Update progress and bar BEFORE showing results
+         if (ProgressInline) ProgressInline.textContent = `(${data.progress} of ${data.total})`;
+         if (ProgressBar) {
+            const Percent = (data.progress / data.total) * 100;
+            ProgressBar.style.width = `${Percent}%`;
+         }
 
         let overlay = document.getElementById("overlay");
         if (overlay) overlay.remove();
