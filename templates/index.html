@@ -14,7 +14,6 @@ body {
     padding:0;
     text-align:center;
     max-width:480px;
-    min-height: 100dvh;
 }
 
 /* ---------- Title ---------- */
@@ -90,7 +89,7 @@ h2 {
     top:50%;
     left:50%;
     transform:translate(-50%,-50%);
-    font-size:clamp(60px, 8vw, 70px);
+    font-size:clamp(46px, 8vw, 70px);
     font-weight:bold;
     text-shadow:0 0 15px rgba(0,0,0,0.9);
     pointer-events:none;
@@ -273,14 +272,23 @@ document.addEventListener("DOMContentLoaded", () => {
       })
       .then(r => r.json())
       .then(data => {
-        if (data.done) {
-          // ✅ Update progress and bar BEFORE showing results
-         if (ProgressInline) ProgressInline.textContent = `(${data.progress} of ${data.total})`;
-         if (ProgressBar) {
-            const Percent = (data.progress / data.total) * 100;
-            ProgressBar.style.width = `${Percent}%`;
-         }
+        // ✅ Always update progress and bar first, even on last correct
+        if (ProgressInline) ProgressInline.textContent = `(${data.progress} of ${data.total})`;
+        if (ProgressBar) {
+          const Percent = (data.progress / data.total) * 100;
+          ProgressBar.style.width = `${Percent}%`;
+        }
 
+        // ✅ Now handle completion
+        if (data.done) {
+          document.getElementById("resultsModal").style.display = "flex";
+          const modal = document.querySelector(".modal-content");
+          modal.querySelector("p:nth-child(3)").textContent = `✅ Correct: ${data.correct}`;
+          modal.querySelector("p:nth-child(4)").textContent = `❌ Incorrect: ${data.incorrect}`;
+          return;
+        }
+
+        // ✅ Overlay feedback and image transition
         let overlay = document.getElementById("overlay");
         if (overlay) overlay.remove();
         overlay = document.createElement("div");
@@ -303,12 +311,6 @@ document.addEventListener("DOMContentLoaded", () => {
             };
           }, 150);
         }, Delay);
-
-        if (ProgressInline) ProgressInline.textContent = `(${data.progress} of ${data.total})`;
-        if (ProgressBar) {
-          const Percent = (data.progress / data.total) * 100;
-          ProgressBar.style.width = `${Percent}%`;
-        }
       })
       .catch(err => console.error("Error:", err));
     });
@@ -316,26 +318,8 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function closeResults() {
-  const modal = document.getElementById("resultsModal");
-  modal.style.display = "none";
-
-  // Fetch reset data from server
-  fetch("/Reset")
-    .then(r => r.json())
-    .then(data => {
-      // Update image
-      const ImgEl = document.getElementById("formation-image");
-      ImgEl.src = "data:image/png;base64," + data.img_data;
-
-      // Reset progress bar
-      const ProgressInline = document.querySelector(".progress-inline");
-      const ProgressBar = document.querySelector(".progress-bar");
-      if (ProgressInline) ProgressInline.textContent = `(${data.progress} of ${data.total})`;
-      if (ProgressBar) ProgressBar.style.width = `${(data.progress / data.total) * 100}%`;
-    })
-    .catch(err => console.error("Error resetting:", err));
+  window.location.href = "{{ url_for('Reset') }}";
 }
-
 </script>
 </body>
 </html>
