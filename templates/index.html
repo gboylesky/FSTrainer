@@ -338,10 +338,12 @@ function closeResults() {
 
 /* ✅ Lock visual viewport height for full-screen PWA (fixes cut-off) */
 function lockViewportHeight() {
-  const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+  // Measure true visible height and add a tiny buffer for nav bar rounding
+  const vh = (window.visualViewport ? window.visualViewport.height : window.innerHeight) + 12;
   document.body.style.height = vh + "px";
   document.documentElement.style.height = vh + "px";
-  document.body.style.overflow = "hidden";
+  document.body.style.overflowY = "hidden";  // no scroll
+  document.body.style.overflowX = "hidden";
 }
 window.addEventListener("load", lockViewportHeight);
 window.visualViewport?.addEventListener("resize", lockViewportHeight);
