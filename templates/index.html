@@ -5,6 +5,18 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
 <title>FS Randoms Trainer</title>
+
+<!-- PWA manifest & service worker -->
+<link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+<meta name="theme-color" content="#1e1e1e">
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/static/service-worker.js')
+      .then(() => console.log("✅ Service worker registered"))
+      .catch(err => console.error("Service worker registration failed:", err));
+  }
+</script>
+
 <style>
 body {
     background-color:#1e1e1e;
