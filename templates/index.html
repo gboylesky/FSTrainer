@@ -6,16 +6,6 @@
 <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
 <title>FS Randoms Trainer</title>
 <style>
-
-html, body {
-    height:100%;
-    margin:0;
-    padding:0;
-    overflow:hidden;          /* fully locks scrollbars */
-    touch-action:none;        /* disables finger drag scrolling */
-    overscroll-behavior:none; /* disables mobile overscroll bounce */
-}
-
 body {
     background-color:#1e1e1e;
     color:white;
@@ -25,7 +15,6 @@ body {
     text-align:center;
     max-width:480px;
     overflow-x:hidden;
-    overflow-y:hidden;  /* ✅ Prevents vertical scroll */
 }
 
 /* ---------- Title ---------- */
@@ -101,7 +90,7 @@ h2 {
     top:50%;
     left:50%;
     transform:translate(-50%,-50%);
-    font-size:clamp(60px, 8vw, 72px); /* slightly larger text */
+    font-size:clamp(60px, 8vw, 70px);
     font-weight:bold;
     text-shadow:0 0 15px rgba(0,0,0,0.9);
     pointer-events:none;
@@ -114,7 +103,7 @@ h2 {
     100% {opacity:0;}
 }
 
-/* ✅ Stronger green for mobile */
+/* Stronger green for mobile */
 @media (max-width: 768px) {
   .overlay[style*="lime"] {
       color: #00e600 !important;
@@ -151,9 +140,8 @@ h2 {
     overflow:hidden;
     height:25px;
     width:100%;
-    margin-bottom:0;     /* ✅ Remove that bottom margin */
+    margin-bottom:8px; /* original margin (allows minimal breathing room) */
 }
-
 .progress-bar {
     height:100%;
     background-color:lime;
