@@ -6,29 +6,34 @@
 <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
 <title>FS Randoms Trainer</title>
 <style>
+
+/* ---------- Global layout lock ---------- */
 html, body {
-    margin: 0;
-    padding: 0;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;          /* 🚫 no scroll */
-    overscroll-behavior: none; /* 🚫 no rubber-band */
-    touch-action: manipulation; /* ✅ still lets buttons work */
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100vh;               /* Fixed viewport height */
+  overflow: hidden;            /* No scrolling */
+  overscroll-behavior: none;
+  touch-action: manipulation;
 }
 
-/* main body styling */
+/* ---------- Body styling ---------- */
 body {
-    background-color: #1e1e1e;
-    color: white;
-    font-family: 'Segoe UI', sans-serif;
-    text-align: center;
-    max-width: 480px;
-    margin: 0 auto;
-    padding: 0;
-    min-height: 100vh;        /* ✅ dynamic viewport height — adjusts safely */
-    display: flex;             /* ensures centering if desired */
-    flex-direction: column;
-    justify-content: flex-start;
+  background-color:#1e1e1e;
+  color:white;
+  font-family:'Segoe UI',sans-serif;
+  text-align:center;
+  max-width:480px;
+  margin:0 auto;
+  padding:0;
+  box-sizing:border-box;
+  display: flex;               /* Stack content vertically */
+  flex-direction: column;
+  justify-content: flex-start; /* Start from top, not centered */
+  align-items: center;
+  min-height:100vh;
+  transition: height 0.4s ease, min-height 0.4s ease;
 }
 
 /* ---------- Title ---------- */
