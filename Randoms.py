@@ -1,7 +1,7 @@
 import os
 import random
 import base64
-from flask import Flask, render_template, request, redirect, url_for, jsonify
+from flask import Flask, render_template, request, jsonify
 
 app = Flask(__name__)
 
@@ -46,70 +46,24 @@ def SetFirstImage():
 # ---------------------------
 # Routes
 # ---------------------------
-@app.route("/", methods=["GET", "POST"])
+@app.route("/", methods=["GET"])
 def Home():
-    Msg = ""
-    Color = "white"
-    ShowResults = False
-    ShowNext = False
     SetFirstImage()
-
-    if request.method == "POST":
-        Guess = request.form.get("guess")
-        if Guess == State["Current"]:
-            Msg = "✅ Correct"
-            Color = "lime"
-            if not State["AttemptedWrong"]:
-                State["Correct"] += 1
-            if len(State["Remaining"]) == 1:
-                ShowResults = True
-            else:
-                ShowNext = True
-        else:
-            Msg = "❌ Try Again"
-            Color = "red"
-            if not State["AttemptedWrong"]:
-                State["Incorrect"] += 1
-                State["AttemptedWrong"] = True
-
     ImgData = GetImageBase64(State["Current"])
     return render_template(
         "index.html",
         img_data=ImgData,
-        msg=Msg,
-        color=Color,
+        msg="",
+        color="white",
         labels=Labels,
         progress=State["Correct"],
         total=len(Labels),
         correct=State["Correct"],
         incorrect=State["Incorrect"],
-        show_results=ShowResults,
-        show_next=ShowNext
+        show_results=False,
+        show_next=False
     )
 
-@app.route("/Next")
-def NextStep():
-    NextImage()
-    return redirect(url_for("Home"))
-
-@app.route("/ResetJson")
-def ResetJson():
-    State["Remaining"] = Labels.copy()
-    State["Current"] = None
-    State["Correct"] = 0
-    State["Incorrect"] = 0
-    State["AttemptedWrong"] = False
-    SetFirstImage()
-    ImgData = GetImageBase64(State["Current"])
-    return jsonify({
-        "img_data": ImgData,
-        "progress": State["Correct"],
-        "total": len(Labels)
-    })
-
-# ---------------------------
-# New AJAX Route
-# ---------------------------
 @app.route("/Guess", methods=["POST"])
 def Guess():
     GuessLabel = request.form.get("guess")
@@ -123,13 +77,18 @@ def Guess():
         Color = "lime"
         if not State["AttemptedWrong"]:
             State["Correct"] += 1
+
+        # If last remaining image
         if len(State["Remaining"]) == 1:
+            State["Remaining"].remove(State["Current"])
             return jsonify({
                 "done": True,
                 "correct": State["Correct"],
                 "incorrect": State["Incorrect"]
             })
+
         NextImage()
+
     else:
         Msg = "❌ Try Again"
         Color = "red"
@@ -148,6 +107,24 @@ def Guess():
         "incorrect": State["Incorrect"]
     })
 
+@app.route("/Reset")
+def Reset():
+    State["Remaining"] = Labels.copy()
+    State["Current"] = None
+    State["Correct"] = 0
+    State["Incorrect"] = 0
+    State["AttemptedWrong"] = False
+    NextImage()  # ✅ ensures a brand new image after reset
+    ImgData = GetImageBase64(State["Current"])
+    return jsonify({
+        "img_data": ImgData,
+        "progress": State["Correct"],
+        "total": len(Labels)
+    })
+
+# ---------------------------
+# Entry point
+# ---------------------------
 if __name__ == "__main__":
     Port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=Port)
+    app.run(host="0.0.0.0", port=Port, debug=True)
