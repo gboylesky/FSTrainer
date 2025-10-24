@@ -98,14 +98,14 @@ h2 {
     pointer-events:none;
     white-space:nowrap;
     opacity:1;
-    animation:fadeout 0.8s ease-in forwards;
+    animation:fadeout 1.2s ease-in forwards;
 }
 @keyframes fadeout {
     0%,80% {opacity:1;}
     100% {opacity:0;}
 }
 
-/* ✅ Stronger, deeper green for mobile */
+/* ✅ Stronger green for mobile */
 @media (max-width: 768px) {
   .overlay[style*="lime"] {
       color: #00e600 !important;
@@ -188,40 +188,11 @@ h2 {
     cursor:pointer;
 }
 .close-x:hover {color:white;}
-
-/* ---------- Responsive height scaling ---------- */
-@media (max-height: 750px) {
-  body { transform: scale(0.9); transform-origin: top center; }
-  h1 { font-size: clamp(24px, 5vw, 36px); margin: 8px 0 4px 0; }
-  h2 { font-size: clamp(18px, 4vw, 28px); margin: 4px 0 2px 0; }
-  .progress-inline { font-size: clamp(16px, 3.5vw, 24px); }
-  .overlay { font-size: clamp(28px, 7vw, 50px); }
-  .buttons { gap: 6px; margin: 4px 0 10px 0; }
-  .buttons button { font-size: 16px; padding: 5px; }
-  .progress-bar-container { height: 18px; margin-bottom: 4px; }
-  .slot-banner { height: 30px; }
-}
-@media (max-height: 850px) {
-  h1 { font-size: clamp(28px, 5vw, 40px); margin: 12px 0 6px 0; }
-  h2 { font-size: clamp(22px, 4.5vw, 30px); margin: 6px 0 4px 0; }
-  .progress-inline { font-size: clamp(20px, 4vw, 28px); }
-  .overlay { font-size: clamp(34px, 7vw, 60px); }
-  .buttons button { font-size: 18px; padding: 6px; }
-  .slot-banner { height: 35px; }
-}
-@media (min-height: 900px) {
-  h1 { font-size: clamp(36px, 6vw, 50px); }
-  h2 { font-size: clamp(28px, 5vw, 38px); }
-  .progress-inline { font-size: clamp(22px, 4.5vw, 36px); }
-  .overlay { font-size: clamp(40px, 8vw, 70px); }
-  .slot-banner { height: 45px; }
-}
 </style>
 </head>
 <body>
 <h1>FS Randoms Trainer</h1>
 
-<!-- Fixed-size banner -->
 <div class="slot-banner">
   <img src="{{ url_for('static', filename='Slots.png') }}" alt="Slot Positions">
 </div>
@@ -250,7 +221,6 @@ h2 {
   </div>
 </div>
 
-<!-- Results Modal -->
 <div class="modal" id="resultsModal">
   <div class="modal-content">
     <span class="close-x" onclick="closeResults()">×</span>
@@ -284,31 +254,32 @@ document.addEventListener("DOMContentLoaded", () => {
           return;
         }
 
-        // Fade image transition
-        ImgEl.classList.add("fade-out");
-        setTimeout(() => {
-          ImgEl.src = "data:image/png;base64," + data.img_data;
-          ImgEl.onload = () => {
-            ImgEl.classList.remove("fade-out");
-            ImgEl.classList.add("fade-in");
-            setTimeout(() => ImgEl.classList.remove("fade-in"), 300);
-          };
-        }, 150);
-
-        // Overlay feedback
+        // --- Overlay feedback ---
         let overlay = document.getElementById("overlay");
-        if (!overlay) {
-          overlay = document.createElement("div");
-          overlay.id = "overlay";
-          overlay.className = "overlay";
-          document.querySelector(".image-wrapper").appendChild(overlay);
-        }
+        if (overlay) overlay.remove();
+        overlay = document.createElement("div");
+        overlay.id = "overlay";
+        overlay.className = "overlay";
         overlay.style.color = data.color;
         overlay.textContent = data.msg;
-        overlay.style.opacity = 1;
-        overlay.style.animation = "fadeout 0.8s ease-in forwards";
+        document.querySelector(".image-wrapper").appendChild(overlay);
+        overlay.style.animation = "fadeout 1.2s ease-in forwards";
 
-        // Progress updates
+        // --- Wait for overlay fade before changing image ---
+        const Delay = 1200; // match fade duration
+        setTimeout(() => {
+          ImgEl.classList.add("fade-out");
+          setTimeout(() => {
+            ImgEl.src = "data:image/png;base64," + data.img_data;
+            ImgEl.onload = () => {
+              ImgEl.classList.remove("fade-out");
+              ImgEl.classList.add("fade-in");
+              setTimeout(() => ImgEl.classList.remove("fade-in"), 300);
+            };
+          }, 150);
+        }, Delay);
+
+        // --- Progress updates immediately ---
         if (ProgressInline) ProgressInline.textContent = `(${data.progress} of ${data.total})`;
         if (ProgressBar) {
           const Percent = (data.progress / data.total) * 100;
