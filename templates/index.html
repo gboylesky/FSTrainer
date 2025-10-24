@@ -2,216 +2,207 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
 <title>FS Randoms Trainer</title>
 <style>
+/* ---------- Global layout ---------- */
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100vh;           /* allow full height but let it resize smoothly */
+  overflow-x: hidden;
+  overflow-y: hidden;           /* prevent manual scrolling */
+  overscroll-behavior: none;
+  touch-action: manipulation;
+}
+
+/* ---------- Body styling ---------- */
 body {
-    background-color:#1e1e1e;
-    color:white;
-    font-family:'Segoe UI',sans-serif;
-    margin:0 auto;
-    padding:0;
-    text-align:center;
-    max-width:480px;
+  background-color:#1e1e1e;
+  color:white;
+  font-family:'Segoe UI',sans-serif;
+  text-align:center;
+  max-width:480px;
+  margin:0 auto;
+  padding:0;
+  box-sizing:border-box;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:flex-start;
+  transition: opacity 0.4s ease;    /* 🩵 fade on resize */
 }
 
 /* ---------- Title ---------- */
 h1 {
-    font-size: clamp(32px, 6vw, 50px);
-    font-weight:bold;
-    margin:20px 0 10px 0;
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
+  font-size: clamp(32px, 6vw, 50px);
+  font-weight:bold;
+  margin:20px 0 10px 0;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
 }
 
 /* ---------- Content ---------- */
 .content {
-    width:100%;
-    text-align:left;
+  width:100%;
+  text-align:left;
 }
 
 /* ---------- Headings ---------- */
 h2 {
-    font-size:clamp(22px, 4vw, 36px);
-    font-weight:bold;
-    margin:8px 0 6px 0;
-    text-align:left;
+  font-size:clamp(22px, 4vw, 36px);
+  font-weight:bold;
+  margin:8px 0 6px 0;
+  text-align:left;
 }
 .progress-inline {
-    font-size:clamp(20px, 4vw, 36px);
-    font-weight:bold;
-    color:white;
-    margin-left:6px;
+  font-size:clamp(20px, 4vw, 36px);
+  font-weight:bold;
+  color:white;
+  margin-left:6px;
 }
 
 /* ---------- Slot banner ---------- */
 .slot-banner {
-    width:100%;
-    height:40px;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    overflow:hidden;
-    margin-bottom:10px;
-    background-color:#1e1e1e;
+  width:100%;
+  height:40px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  overflow:hidden;
+  margin-bottom:10px;
+  background-color:#1e1e1e;
 }
 .slot-banner img {
-    width:auto;
-    max-width:100%;
-    height:100%;
-    object-fit:contain;
-    border-radius:6px;
-    box-shadow:0 0 10px rgba(0,0,0,0.5);
+  width:auto;
+  max-width:100%;
+  height:100%;
+  object-fit:contain;
+  border-radius:6px;
+  box-shadow:0 0 10px rgba(0,0,0,0.5);
 }
 
 /* ---------- Image and Overlay ---------- */
 .image-wrapper {
-    position:relative;
-    width:100%;
-    display:flex;
-    justify-content:center;
-    align-items:center;
+  position:relative;
+  width:100%;
+  display:flex;
+  justify-content:center;
+  align-items:center;
 }
 .image-wrapper img {
-    width:100%;
-    height:auto;
-    opacity:1;
-    transition:opacity 0.3s ease-in-out;
+  width:100%;
+  height:auto;
+  opacity:1;
+  transition:opacity 0.3s ease-in-out;
 }
 .image-wrapper img.fade-out {opacity:0;}
 .image-wrapper img.fade-in {opacity:1;}
 
 .overlay {
-    position:absolute;
-    top:50%;
-    left:50%;
-    transform:translate(-50%,-50%);
-    font-size:clamp(46px, 8vw, 70px);
-    font-weight:bold;
-    text-shadow:0 0 15px rgba(0,0,0,0.9);
-    pointer-events:none;
-    white-space:nowrap;
-    opacity:1;
-    animation:fadeout 0.8s ease-in forwards;
+  position:absolute;
+  top:40%;  /* raised overlay higher */
+  left:50%;
+  transform:translate(-50%,-50%);
+  font-size:clamp(46px, 8vw, 70px);
+  font-weight:bold;
+  text-shadow:0 0 15px rgba(0,0,0,0.9);
+  pointer-events:none;
+  white-space:nowrap;
+  opacity:1;
+  animation:fadeout 0.8s ease-in forwards;
 }
 @keyframes fadeout {
-    0%,80% {opacity:1;}
-    100% {opacity:0;}
+  0%,80% {opacity:1;}
+  100% {opacity:0;}
 }
 
 /* ✅ Stronger green for mobile */
 @media (max-width: 768px) {
   .overlay[style*="lime"] {
-      color: #00e600 !important;
-      text-shadow: 0 0 20px rgba(0, 255, 0, 0.9);
+    color: #00e600 !important;
+    text-shadow: 0 0 20px rgba(0, 255, 0, 0.9);
   }
 }
 
 /* ---------- Buttons ---------- */
 .buttons {
-    display:grid;
-    grid-template-columns:repeat(4,1fr);
-    gap:12px;
-    margin:10px 0 20px 0;
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:12px;
+  margin:10px 0 20px 0;
 }
 .buttons button {
-    font-size:20px;
-    padding:8px;
-    border-radius:8px;
-    background:#333;
-    color:white;
-    border:2px solid #555;
-    cursor:pointer;
+  font-size:20px;
+  padding:8px;
+  border-radius:8px;
+  background:#333;
+  color:white;
+  border:2px solid #555;
+  cursor:pointer;
 }
 .buttons button:hover {background-color:#444;}
 .buttons button:active {
-    background-color:#555;
-    transform:scale(0.97);
+  background-color:#555;
+  transform:scale(0.97);
 }
 
 /* ---------- Progress Bar ---------- */
 .progress-bar-container {
-    background-color:#333;
-    border-radius:10px;
-    overflow:hidden;
-    height:25px;
-    width:100%;
-    margin-bottom:8px;
+  background-color:#333;
+  border-radius:10px;
+  overflow:hidden;
+  height:25px;
+  width:100%;
+  margin-bottom:8px;
 }
 .progress-bar {
-    height:100%;
-    background-color:lime;
-    width:{{ (progress/total*100) if total>0 else 0 }}%;
-    transition:width 0.3s ease-in-out;
+  height:100%;
+  background-color:lime;
+  width:{{ (progress/total*100) if total>0 else 0 }}%;
+  transition:width 0.3s ease-in-out;
 }
 
 /* ---------- Modal (Results) ---------- */
 .modal {
-    display:{% if show_results %}flex{% else %}none{% endif %};
-    position:fixed;
-    inset:0;
-    background:none;
-    justify-content:center;
-    align-items:center;
-    z-index:999;
+  display:{% if show_results %}flex{% else %}none{% endif %};
+  position:fixed;
+  inset:0;
+  background:none;
+  justify-content:center;
+  align-items:center;
+  z-index:999;
 }
 .modal-content {
-    background-color:#2f2f2f;
-    padding:clamp(20px, 5vw, 45px);
-    border-radius:12px;
-    text-align:center;
-    width:clamp(240px, 70%, 330px);
-    position:relative;
-    box-sizing:border-box;
+  background-color:#2f2f2f;
+  padding:clamp(20px, 5vw, 45px);
+  border-radius:12px;
+  text-align:center;
+  width:clamp(240px, 70%, 330px);
+  position:relative;
+  box-sizing:border-box;
 }
 .modal-content h2 {
-    margin:0 0 15px 0;
-    font-size:clamp(26px, 6vw, 38px);
+  margin:0 0 15px 0;
+  font-size:clamp(26px, 6vw, 38px);
 }
 .modal-content p {
-    font-size:clamp(20px, 5vw, 30px);
-    margin:10px 0;
+  font-size:clamp(20px, 5vw, 30px);
+  margin:10px 0;
 }
 .close-x {
-    position:absolute;
-    top:10px;
-    right:18px;
-    font-size:clamp(22px, 6vw, 30px);
-    color:#aaa;
-    font-weight:bold;
-    cursor:pointer;
+  position:absolute;
+  top:10px;
+  right:18px;
+  font-size:clamp(22px, 6vw, 30px);
+  color:#aaa;
+  font-weight:bold;
+  cursor:pointer;
 }
 .close-x:hover {color:white;}
-
-/* ---------- Responsive height scaling ---------- */
-@media (max-height: 750px) {
-  body { transform: scale(0.9); transform-origin: top center; }
-  h1 { font-size: clamp(24px, 5vw, 36px); margin: 8px 0 4px 0; }
-  h2 { font-size: clamp(18px, 4vw, 28px); margin: 4px 0 2px 0; }
-  .progress-inline { font-size: clamp(16px, 3.5vw, 24px); }
-  .overlay { font-size: clamp(28px, 7vw, 50px); }
-  .buttons { gap: 6px; margin: 4px 0 10px 0; }
-  .buttons button { font-size: 16px; padding: 5px; }
-  .progress-bar-container { height: 18px; margin-bottom: 4px; }
-  .slot-banner { height: 30px; }
-}
-@media (max-height: 850px) {
-  h1 { font-size: clamp(28px, 5vw, 40px); margin: 12px 0 6px 0; }
-  h2 { font-size: clamp(22px, 4.5vw, 30px); margin: 6px 0 4px 0; }
-  .progress-inline { font-size: clamp(20px, 4vw, 28px); }
-  .overlay { font-size: clamp(34px, 7vw, 60px); }
-  .buttons button { font-size: 18px; padding: 6px; }
-  .slot-banner { height: 35px; }
-}
-@media (min-height: 900px) {
-  h1 { font-size: clamp(36px, 6vw, 50px); }
-  h2 { font-size: clamp(28px, 5vw, 38px); }
-  .progress-inline { font-size: clamp(22px, 4.5vw, 36px); }
-  .overlay { font-size: clamp(40px, 8vw, 70px); }
-  .slot-banner { height: 45px; }
-}
 </style>
 </head>
 <body>
@@ -264,9 +255,7 @@ document.addEventListener("DOMContentLoaded", () => {
   Buttons.forEach(btn => {
     btn.addEventListener("click", () => {
       const Guess = btn.value;
-
-      // 🚫 Disable buttons during animation to prevent double-taps
-      Buttons.forEach(b => b.disabled = true);
+      Buttons.forEach(b => b.disabled = true); // prevent double taps
 
       fetch("/Guess", {
         method: "POST",
@@ -274,14 +263,12 @@ document.addEventListener("DOMContentLoaded", () => {
       })
       .then(r => r.json())
       .then(data => {
-        // ✅ Always update progress and bar first
         if (ProgressInline) ProgressInline.textContent = `(${data.progress} of ${data.total})`;
         if (ProgressBar) {
           const Percent = (data.progress / data.total) * 100;
           ProgressBar.style.width = `${Percent}%`;
         }
 
-        // ✅ Handle completion with slight delay for visual clarity
         if (data.done) {
           setTimeout(() => {
             document.getElementById("resultsModal").style.display = "flex";
@@ -293,7 +280,7 @@ document.addEventListener("DOMContentLoaded", () => {
           return;
         }
 
-        // ✅ Overlay feedback
+        // Overlay feedback
         let overlay = document.getElementById("overlay");
         if (overlay) overlay.remove();
         overlay = document.createElement("div");
@@ -304,7 +291,6 @@ document.addEventListener("DOMContentLoaded", () => {
         document.querySelector(".image-wrapper").appendChild(overlay);
         overlay.style.animation = "fadeout 0.8s ease-in forwards";
 
-        // ✅ Only fade/change image if correct
         if (data.color !== "red") {
           const Delay = 800;
           setTimeout(() => {
@@ -320,7 +306,6 @@ document.addEventListener("DOMContentLoaded", () => {
           }, Delay);
         }
 
-        // ✅ Re-enable buttons after animation completes
         setTimeout(() => Buttons.forEach(b => b.disabled = false), 900);
       })
       .catch(err => console.error("Error:", err));
@@ -346,6 +331,16 @@ function closeResults() {
     })
     .catch(err => console.error("Error resetting:", err));
 }
+
+/* 🩵 Fade body during viewport resize to mask snapping */
+let resizeTimer;
+window.addEventListener("resize", () => {
+  document.body.style.opacity = "0.7";
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    document.body.style.opacity = "1";
+  }, 400);
+});
 </script>
 </body>
 </html>
