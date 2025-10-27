@@ -6,31 +6,14 @@
 <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
 <title>FS Randoms Trainer</title>
 <style>
-html, body {
-    margin: 0;
-    padding: 0;
-    width: 100%;
-    overflow-x: hidden;
-    overflow-y: hidden;
-    overscroll-behavior: none;
-    touch-action: manipulation;
-    box-sizing: border-box;
-}
-
-/* ✅ Center & lock width when the address bar hides */
 body {
     background-color:#1e1e1e;
     color:white;
     font-family:'Segoe UI',sans-serif;
-    position: fixed;               /* lock visual position */
-    left: 50%;                     /* center horizontally */
-    transform: translateX(-50%);   /* correct offset */
-    width: min(480px, 100vw);      /* never exceed screen width */
-    height: 100%;                  /* allow natural height */
-    margin: 0;
-    padding: 0;
+    margin:0 auto;
+    padding:0;
     text-align:center;
-    overflow: hidden;
+    max-width:480px;
 }
 
 /* ---------- Title ---------- */
