@@ -268,23 +268,29 @@ document.addEventListener("DOMContentLoaded", () => {
       })
       .then(r => r.json())
       .then(data => {
+        // ✅ Always update progress immediately (fixes 15/16 issue)
         if (ProgressInline) ProgressInline.textContent = `(${data.progress} of ${data.total})`;
         if (ProgressBar) {
           const Percent = (data.progress / data.total) * 100;
           ProgressBar.style.width = `${Percent}%`;
         }
 
+        // ✅ Handle end of round *after* progress updates
         if (data.done) {
-          setTimeout(() => {
-            document.getElementById("resultsModal").style.display = "flex";
-            const modal = document.querySelector(".modal-content");
-            modal.querySelector("p:nth-child(3)").textContent = `✅ Correct: ${data.correct}`;
-            modal.querySelector("p:nth-child(4)").textContent = `❌ Incorrect: ${data.incorrect}`;
-          }, 400);
+          // ✅ ensure progress bar and text have time to visually update first
+          requestAnimationFrame(() => {
+            setTimeout(() => {
+              document.getElementById("resultsModal").style.display = "flex";
+              const modal = document.querySelector(".modal-content");
+              modal.querySelector("p:nth-child(3)").textContent = `✅ Correct: ${data.correct}`;
+              modal.querySelector("p:nth-child(4)").textContent = `❌ Incorrect: ${data.incorrect}`;
+            }, 300);
+          });
           Buttons.forEach(b => b.disabled = false);
           return;
         }
 
+        // ✅ Normal overlay + image update
         let overlay = document.getElementById("overlay");
         if (overlay) overlay.remove();
         overlay = document.createElement("div");
@@ -335,19 +341,6 @@ function closeResults() {
     })
     .catch(err => console.error("Error resetting:", err));
 }
-
-/* ✅ Lock visual viewport height for full-screen PWA (fixes cut-off) */
-function lockViewportHeight() {
-  // Measure true visible height and add a tiny buffer for nav bar rounding
-  const vh = (window.visualViewport ? window.visualViewport.height : window.innerHeight) + 12;
-  document.body.style.height = vh + "px";
-  document.documentElement.style.height = vh + "px";
-  document.body.style.overflowY = "hidden";  // no scroll
-  document.body.style.overflowX = "hidden";
-}
-window.addEventListener("load", lockViewportHeight);
-window.visualViewport?.addEventListener("resize", lockViewportHeight);
-window.addEventListener("resize", lockViewportHeight);
 </script>
 </body>
 </html>
