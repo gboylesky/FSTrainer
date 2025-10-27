@@ -11,20 +11,26 @@ html, body {
     padding: 0;
     width: 100%;
     overflow-x: hidden;
-    overflow-y: hidden;       /* ✅ locks scrolling but doesn't fix height */
+    overflow-y: hidden;
     overscroll-behavior: none;
     touch-action: manipulation;
     box-sizing: border-box;
 }
 
+/* ✅ Center & lock width when the address bar hides */
 body {
     background-color:#1e1e1e;
     color:white;
     font-family:'Segoe UI',sans-serif;
-    margin:0 auto;
-    padding:0;
+    position: fixed;               /* lock visual position */
+    left: 50%;                     /* center horizontally */
+    transform: translateX(-50%);   /* correct offset */
+    width: min(480px, 100vw);      /* never exceed screen width */
+    height: 100%;                  /* allow natural height */
+    margin: 0;
+    padding: 0;
     text-align:center;
-    max-width:480px;
+    overflow: hidden;
 }
 
 /* ---------- Title ---------- */
@@ -226,3 +232,137 @@ h2 {
 </style>
 </head>
 <body>
+<h1>FS Randoms Trainer</h1>
+
+<div class="slot-banner">
+  <img src="{{ url_for('static', filename='slots.png') }}" alt="Slot Positions">
+</div>
+
+<div class="content">
+  <h2>Formation</h2>
+  <div class="image-wrapper" id="image-area">
+    <img id="formation-image" src="data:image/png;base64,{{ img_data }}" alt="Formation">
+    {% if msg %}
+    <div id="overlay" class="overlay" style="color:{{ color }}">{{ msg }}</div>
+    {% endif %}
+  </div>
+
+  <h2>Letter</h2>
+  <form class="buttons" id="GuessForm">
+    {% for label in labels %}
+    <button type="button" value="{{ label }}">{{ label }}</button>
+    {% endfor %}
+  </form>
+
+  <h2>
+    Progress <span class="progress-inline">({{ progress }} of {{ total }})</span>
+  </h2>
+  <div class="progress-bar-container">
+    <div class="progress-bar"></div>
+  </div>
+</div>
+
+<div class="modal" id="resultsModal">
+  <div class="modal-content">
+    <span class="close-x" onclick="closeResults()">×</span>
+    <h2>Results</h2>
+    <p style="color:lime;">✅ Correct: {{ correct }}</p>
+    <p style="color:red;">❌ Incorrect: {{ incorrect }}</p>
+  </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const ImgEl = document.getElementById("formation-image");
+  const ProgressInline = document.querySelector(".progress-inline");
+  const ProgressBar = document.querySelector(".progress-bar");
+  const Buttons = document.querySelectorAll("#GuessForm button");
+
+  Buttons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const Guess = btn.value;
+
+      // 🚫 Disable buttons during animation to prevent double-taps
+      Buttons.forEach(b => b.disabled = true);
+
+      fetch("/Guess", {
+        method: "POST",
+        body: new URLSearchParams({ guess: Guess })
+      })
+      .then(r => r.json())
+      .then(data => {
+        // ✅ Always update progress and bar first
+        if (ProgressInline) ProgressInline.textContent = `(${data.progress} of ${data.total})`;
+        if (ProgressBar) {
+          const Percent = (data.progress / data.total) * 100;
+          ProgressBar.style.width = `${Percent}%`;
+        }
+
+        // ✅ Handle completion with slight delay for visual clarity
+        if (data.done) {
+          setTimeout(() => {
+            document.getElementById("resultsModal").style.display = "flex";
+            const modal = document.querySelector(".modal-content");
+            modal.querySelector("p:nth-child(3)").textContent = `✅ Correct: ${data.correct}`;
+            modal.querySelector("p:nth-child(4)").textContent = `❌ Incorrect: ${data.incorrect}`;
+          }, 400);
+          Buttons.forEach(b => b.disabled = false);
+          return;
+        }
+
+        // ✅ Overlay feedback
+        let overlay = document.getElementById("overlay");
+        if (overlay) overlay.remove();
+        overlay = document.createElement("div");
+        overlay.id = "overlay";
+        overlay.className = "overlay";
+        overlay.style.color = data.color;
+        overlay.textContent = data.msg;
+        document.querySelector(".image-wrapper").appendChild(overlay);
+        overlay.style.animation = "fadeout 0.8s ease-in forwards";
+
+        // ✅ Only fade/change image if correct
+        if (data.color !== "red") {
+          const Delay = 800;
+          setTimeout(() => {
+            ImgEl.classList.add("fade-out");
+            setTimeout(() => {
+              ImgEl.src = "data:image/png;base64," + data.img_data;
+              ImgEl.onload = () => {
+                ImgEl.classList.remove("fade-out");
+                ImgEl.classList.add("fade-in");
+                setTimeout(() => ImgEl.classList.remove("fade-in"), 300);
+              };
+            }, 150);
+          }, Delay);
+        }
+
+        // ✅ Re-enable buttons after animation completes
+        setTimeout(() => Buttons.forEach(b => b.disabled = false), 900);
+      })
+      .catch(err => console.error("Error:", err));
+    });
+  });
+});
+
+function closeResults() {
+  fetch("/Reset", { method: "POST" })
+    .then(r => r.json())
+    .then(data => {
+      const ImgEl = document.getElementById("formation-image");
+      ImgEl.src = "data:image/png;base64," + data.img_data;
+      ImgEl.classList.add("fade-in");
+      setTimeout(() => ImgEl.classList.remove("fade-in"), 300);
+
+      const ProgressInline = document.querySelector(".progress-inline");
+      const ProgressBar = document.querySelector(".progress-bar");
+      ProgressInline.textContent = `(${data.progress} of ${data.total})`;
+      ProgressBar.style.width = `${(data.progress / data.total) * 100}%`;
+
+      document.getElementById("resultsModal").style.display = "none";
+    })
+    .catch(err => console.error("Error resetting:", err));
+}
+</script>
+</body>
+</html>
