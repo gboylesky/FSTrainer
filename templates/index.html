@@ -22,8 +22,8 @@ html, body {
   margin: 0;
   padding: 0;
   width: 100%;
-  height: var(--realVH);    /* real measured viewport */
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: hidden;
   overscroll-behavior: none;
   touch-action: manipulation;
   box-sizing: border-box;
@@ -208,16 +208,6 @@ h2 {
 }
 .close-x:hover {color:white;}
 </style>
-
-<script>
-function fixViewport() {
-  const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-  document.documentElement.style.setProperty('--realVH', `${vh}px`);
-}
-window.addEventListener('load', fixViewport);
-window.addEventListener('resize', fixViewport);
-window.visualViewport?.addEventListener('resize', fixViewport);
-</script>
 </head>
 
 <body>
