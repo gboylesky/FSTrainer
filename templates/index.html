@@ -18,107 +18,108 @@
 
 <style>
 html, body {
-    margin: 0;
-    padding: 0;
-    height: 100%;
+  margin: 0;
+  padding: 0;
+  height: 100%;
 }
 
 body {
-    background-color: #1e1e1e;
-    color: white;
-    font-family: 'Segoe UI', sans-serif;
-    text-align: center;
+  background-color: #1e1e1e;
+  color: white;
+  font-family: 'Segoe UI', sans-serif;
+  text-align: center;
+  overflow: hidden;
 }
 
 /* ---------- App Container ---------- */
 .app-container {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    height: 100%;
-    max-width: 480px;
-    margin: 0 auto;
-    box-sizing: border-box;
-    padding: 0 10px env(safe-area-inset-bottom, 0);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  box-sizing: border-box;
+  padding: 0 10px calc(env(safe-area-inset-bottom, 0) + 12px);
 }
 
 /* ---------- Title ---------- */
 h1 {
-    font-size: clamp(32px, 6vw, 50px);
-    font-weight: bold;
-    margin: 20px 0 10px 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  font-size: clamp(32px, 6vw, 50px);
+  font-weight: bold;
+  margin: 20px 0 10px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* ---------- Slot banner ---------- */
 .slot-banner {
-    width: 100%;
-    height: 40px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    overflow: hidden;
-    margin-bottom: 10px;
-    background-color: #1e1e1e;
+  width: 100%;
+  height: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  margin-bottom: 10px;
+  background-color: #1e1e1e;
 }
 .slot-banner img {
-    width: auto;
-    max-width: 100%;
-    height: 100%;
-    object-fit: contain;
-    border-radius: 6px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+  width: auto;
+  max-width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 6px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.5);
 }
 
 /* ---------- Headings ---------- */
 h2 {
-    font-size: clamp(22px, 4vw, 36px);
-    font-weight: bold;
-    margin: 8px 0 6px 0;
-    text-align: left;
+  font-size: clamp(22px, 4vw, 36px);
+  font-weight: bold;
+  margin: 8px 0 6px 0;
+  text-align: left;
 }
 .progress-inline {
-    font-size: clamp(20px, 4vw, 36px);
-    font-weight: bold;
-    color: white;
-    margin-left: 6px;
+  font-size: clamp(20px, 4vw, 36px);
+  font-weight: bold;
+  color: white;
+  margin-left: 6px;
 }
 
 /* ---------- Image and Overlay ---------- */
 .image-wrapper {
-    position: relative;
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+  position: relative;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 .image-wrapper img {
-    width: 100%;
-    height: auto;
-    opacity: 1;
-    transition: opacity 0.3s ease-in-out;
+  width: 100%;
+  height: auto;
+  opacity: 1;
+  transition: opacity 0.3s ease-in-out;
 }
 .image-wrapper img.fade-out { opacity: 0; }
 .image-wrapper img.fade-in { opacity: 1; }
 
 .overlay {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: clamp(46px, 8vw, 70px);
-    font-weight: bold;
-    text-shadow: 0 0 15px rgba(0,0,0,0.9);
-    pointer-events: none;
-    white-space: nowrap;
-    opacity: 1;
-    animation: fadeout 0.8s ease-in forwards;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: clamp(46px, 8vw, 70px);
+  font-weight: bold;
+  text-shadow: 0 0 15px rgba(0,0,0,0.9);
+  pointer-events: none;
+  white-space: nowrap;
+  opacity: 1;
+  animation: fadeout 0.8s ease-in forwards;
 }
 @keyframes fadeout {
-    0%,80% {opacity:1;}
-    100% {opacity:0;}
+  0%,80% {opacity:1;}
+  100% {opacity:0;}
 }
 
 /* ✅ Stronger green for mobile */
@@ -131,83 +132,85 @@ h2 {
 
 /* ---------- Buttons ---------- */
 .buttons {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 12px;
-    margin: 10px 0 20px 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin: 10px 0 20px 0;
 }
 .buttons button {
-    font-size: 20px;
-    padding: 8px;
-    border-radius: 8px;
-    background: #333;
-    color: white;
-    border: 2px solid #555;
-    cursor: pointer;
+  font-size: 20px;
+  padding: 8px;
+  border-radius: 8px;
+  background: #333;
+  color: white;
+  border: 2px solid #555;
+  cursor: pointer;
 }
 .buttons button:hover { background-color: #444; }
 .buttons button:active {
-    background-color: #555;
-    transform: scale(0.97);
+  background-color: #555;
+  transform: scale(0.97);
 }
 
 /* ---------- Progress Bar ---------- */
+footer {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
 .progress-bar-container {
-    background-color: #333;
-    border-radius: 10px;
-    overflow: hidden;
-    height: 25px;
-    width: 100%;
-    margin-bottom: 8px;
+  background-color: #333;
+  border-radius: 10px;
+  overflow: hidden;
+  height: 25px;
+  width: 100%;
+  margin-bottom: 8px;
 }
 .progress-bar {
-    height: 100%;
-    background-color: lime;
-    width: {{ (progress/total*100) if total>0 else 0 }}%;
-    transition: width 0.3s ease-in-out;
+  height: 100%;
+  background-color: lime;
+  width: {{ (progress/total*100) if total>0 else 0 }}%;
+  transition: width 0.3s ease-in-out;
 }
 
 /* ---------- Modal (Results) ---------- */
 .modal {
-    display: {% if show_results %}flex{% else %}none{% endif %};
-    position: fixed;
-    inset: 0;
-    background: none;
-    justify-content: center;
-    align-items: center;
-    z-index: 999;
+  display: {% if show_results %}flex{% else %}none{% endif %};
+  position: fixed;
+  inset: 0;
+  background: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
 }
 .modal-content {
-    background-color: #2f2f2f;
-    padding: clamp(20px, 5vw, 45px);
-    border-radius: 12px;
-    text-align: center;
-    width: clamp(240px, 70%, 330px);
-    position: relative;
-    box-sizing: border-box;
+  background-color: #2f2f2f;
+  padding: clamp(20px, 5vw, 45px);
+  border-radius: 12px;
+  text-align: center;
+  width: clamp(240px, 70%, 330px);
+  position: relative;
+  box-sizing: border-box;
 }
 .modal-content h2 {
-    margin: 0 0 15px 0;
-    font-size: clamp(26px, 6vw, 38px);
+  margin: 0 0 15px 0;
+  font-size: clamp(26px, 6vw, 38px);
 }
 .modal-content p {
-    font-size: clamp(20px, 5vw, 30px);
-    margin: 10px 0;
+  font-size: clamp(20px, 5vw, 30px);
+  margin: 10px 0;
 }
 .close-x {
-    position: absolute;
-    top: 10px;
-    right: 18px;
-    font-size: clamp(22px, 6vw, 30px);
-    color: #aaa;
-    font-weight: bold;
-    cursor: pointer;
+  position: absolute;
+  top: 10px;
+  right: 18px;
+  font-size: clamp(22px, 6vw, 30px);
+  color: #aaa;
+  font-weight: bold;
+  cursor: pointer;
 }
 .close-x:hover { color: white; }
 
 /* ---------- Responsive height scaling ---------- */
 @media (max-height: 750px) {
-  .app-container { transform: scale(0.94); transform-origin: top center; }
   h1 { font-size: clamp(24px, 5vw, 36px); margin: 8px 0 4px 0; }
   h2 { font-size: clamp(18px, 4vw, 28px); margin: 4px 0 2px 0; }
   .progress-inline { font-size: clamp(16px, 3.5vw, 24px); }
@@ -216,6 +219,13 @@ h2 {
   .buttons button { font-size: 16px; padding: 5px; }
   .progress-bar-container { height: 18px; margin-bottom: 4px; }
   .slot-banner { height: 30px; }
+}
+
+/* ---------- PWA fix: use true viewport height ---------- */
+@media (display-mode: standalone) {
+  html, body { height: 100svh; overflow: hidden; }
+  .app-container { height: 100svh; padding-bottom: calc(env(safe-area-inset-bottom, 0) + 12px); }
+  footer { padding-bottom: env(safe-area-inset-bottom, 0); }
 }
 </style>
 </head>
