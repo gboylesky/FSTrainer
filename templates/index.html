@@ -224,15 +224,27 @@ h2 {
   .slot-banner { height: 45px; }
 }
 
-@media (display-mode: standalone) and (max-height: 750px) {
-  body {
-    transform: scale(0.94);
-    transform-origin: top center;
-    padding-bottom: env(safe-area-inset-bottom, 60px);
-  }
+/* --- Always-visible progress footer --- */
+.progress-footer {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
+  width: 100%;
+  max-width: 480px;
+  padding: 6px 12px 0;
+  box-sizing: border-box;
+  background: #1e1e1e;
+  z-index: 1000;
+}
+
+/* Add bottom padding so content doesn't hide under footer */
+body {
+  padding-bottom: 52px;
 }
 </style>
 </head>
+
 <body>
 <h1>FS Randoms Trainer</h1>
 
@@ -255,7 +267,9 @@ h2 {
     <button type="button" value="{{ label }}">{{ label }}</button>
     {% endfor %}
   </form>
+</div>
 
+<div class="progress-footer">
   <h2>
     Progress <span class="progress-inline">({{ progress }} of {{ total }})</span>
   </h2>
@@ -283,8 +297,6 @@ document.addEventListener("DOMContentLoaded", () => {
   Buttons.forEach(btn => {
     btn.addEventListener("click", () => {
       const Guess = btn.value;
-
-      // 🚫 Disable buttons during animation to prevent double-taps
       Buttons.forEach(b => b.disabled = true);
 
       fetch("/Guess", {
@@ -293,14 +305,12 @@ document.addEventListener("DOMContentLoaded", () => {
       })
       .then(r => r.json())
       .then(data => {
-        // ✅ Always update progress and bar first
         if (ProgressInline) ProgressInline.textContent = `(${data.progress} of ${data.total})`;
         if (ProgressBar) {
           const Percent = (data.progress / data.total) * 100;
           ProgressBar.style.width = `${Percent}%`;
         }
 
-        // ✅ Handle completion with slight delay for visual clarity
         if (data.done) {
           setTimeout(() => {
             document.getElementById("resultsModal").style.display = "flex";
@@ -312,7 +322,6 @@ document.addEventListener("DOMContentLoaded", () => {
           return;
         }
 
-        // ✅ Overlay feedback
         let overlay = document.getElementById("overlay");
         if (overlay) overlay.remove();
         overlay = document.createElement("div");
@@ -323,7 +332,6 @@ document.addEventListener("DOMContentLoaded", () => {
         document.querySelector(".image-wrapper").appendChild(overlay);
         overlay.style.animation = "fadeout 0.8s ease-in forwards";
 
-        // ✅ Only fade/change image if correct
         if (data.color !== "red") {
           const Delay = 800;
           setTimeout(() => {
@@ -338,8 +346,6 @@ document.addEventListener("DOMContentLoaded", () => {
             }, 150);
           }, Delay);
         }
-
-        // ✅ Re-enable buttons after animation completes
         setTimeout(() => Buttons.forEach(b => b.disabled = false), 900);
       })
       .catch(err => console.error("Error:", err));
