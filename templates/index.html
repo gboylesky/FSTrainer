@@ -42,12 +42,20 @@ html, body {
 .app-container {
   display: flex;
   flex-direction: column;
+  align-items: stretch;
   min-height: 100svh;
   max-width: 480px;
   width: 100%;
   margin: 0 auto;
   box-sizing: border-box;
   padding: 0 10px env(safe-area-inset-bottom, 0);
+}
+
+/* ✅ Fix for phone browsers cutting off footer */
+@media (hover: none) and (pointer: coarse) {
+  .app-container {
+    min-height: 100dvh;
+  }
 }
 
 /* ✅ Full width + height in PWA */
@@ -73,7 +81,12 @@ html, body {
 h1 {
   font-size: clamp(24px, 5vw, 42px);
   font-weight: bold;
-  margin: 20px 0 10px 0;
+  margin: 12px 0 6px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  display: block;
 }
 
 /* ---------- Slot banner ---------- */
@@ -83,47 +96,48 @@ h1 {
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-bottom: 10px;
+  overflow: hidden;
+  margin-bottom: 4px;
+  background-color: #1e1e1e;
 }
 .slot-banner img {
+  width: auto;
   max-width: 100%;
   height: 100%;
   object-fit: contain;
   border-radius: 6px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.5);
 }
 
 /* ---------- Headings ---------- */
 h2 {
-  font-size: clamp(22px, 4vw, 36px);
+  font-size: clamp(22px, 4vw, 34px);
   font-weight: bold;
-  margin: 8px 0 6px 0;
+  margin: 6px 0 4px 0;
   text-align: left;
 }
 .progress-inline {
-  font-size: clamp(20px, 4vw, 36px);
+  font-size: clamp(20px, 4vw, 34px);
   font-weight: bold;
   color: white;
   margin-left: 6px;
 }
 
-/* ---------- Image Section ---------- */
+/* ---------- Image and Overlay ---------- */
 .image-wrapper {
   position: relative;
   width: 100%;
-  flex: 1 1 auto;
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 30vh;
-  max-height: 55vh;   /* keeps footer visible */
-  overflow: hidden;
+  margin: 4px 0;
 }
 .image-wrapper img {
   width: 100%;
   height: auto;
-  max-height: 100%;
-  object-fit: contain;
+  opacity: 1;
   transition: opacity 0.3s ease-in-out;
+  object-fit: contain;
 }
 .image-wrapper img.fade-out { opacity: 0; }
 .image-wrapper img.fade-in { opacity: 1; }
@@ -138,21 +152,26 @@ h2 {
   font-weight: bold;
   text-shadow: 0 0 15px rgba(0,0,0,0.9);
   pointer-events: none;
+  white-space: nowrap;
+  opacity: 1;
   animation: fadeout 0.8s ease-in forwards;
 }
-@keyframes fadeout { 0%,80% {opacity:1;} 100% {opacity:0;} }
+@keyframes fadeout {
+  0%,80% {opacity:1;}
+  100% {opacity:0;}
+}
 
 /* ---------- Buttons ---------- */
 .buttons {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-  margin: 10px 0 20px 0;
+  gap: 10px;
+  margin: 6px 0 10px 0;
 }
 .buttons button {
-  font-size: 20px;
-  padding: 8px;
-  border-radius: 8px;
+  font-size: 24px;          /* slightly larger text */
+  padding: 18px 8px;        /* taller buttons */
+  border-radius: 10px;      /* smoother corners */
   background: #333;
   color: white;
   border: 2px solid #555;
@@ -164,9 +183,10 @@ h2 {
   transform: scale(0.97);
 }
 
-/* ---------- Progress ---------- */
+/* ---------- Progress Bar ---------- */
 footer {
-  padding-bottom: calc(env(safe-area-inset-bottom, 0) + 8px);
+  padding-bottom: calc(env(safe-area-inset-bottom, 0) + 6px);
+  margin-top: 4px;
 }
 .progress-bar-container {
   background-color: #333;
@@ -174,7 +194,7 @@ footer {
   overflow: hidden;
   height: 25px;
   width: 100%;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 .progress-bar {
   height: 100%;
@@ -200,6 +220,15 @@ footer {
   text-align: center;
   width: clamp(240px, 70%, 330px);
   position: relative;
+  box-sizing: border-box;
+}
+.modal-content h2 {
+  margin: 0 0 15px 0;
+  font-size: clamp(26px, 6vw, 38px);
+}
+.modal-content p {
+  font-size: clamp(20px, 5vw, 30px);
+  margin: 10px 0;
 }
 .close-x {
   position: absolute;
@@ -207,9 +236,16 @@ footer {
   right: 18px;
   font-size: clamp(22px, 6vw, 30px);
   color: #aaa;
+  font-weight: bold;
   cursor: pointer;
 }
 .close-x:hover { color: white; }
+
+/* ---------- Compact vertical spacing ---------- */
+header, main, footer {
+  margin: 0;
+  padding: 0;
+}
 </style>
 </head>
 
