@@ -24,38 +24,43 @@ html, body {
   height: 100%;
   width: 100%;
   max-width: 100%;
-  overflow: hidden;
+  overflow: hidden;           /* no vertical scroll */
   overflow-x: hidden;
   background-color: #1e1e1e;
   color: white;
   font-family: 'Segoe UI', sans-serif;
   text-align: center;
-  -webkit-user-select: none;
 }
 
-/* ---------- Scaling wrapper ---------- */
+/* ---------- Wrapper (no transforms) ---------- */
 .app-scale-wrapper {
-  transform-origin: top center;
   width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: flex-start;   /* No horizontal centering */
-  align-items: flex-start;
+  height: 100dvh;             /* use dynamic viewport height */
+  display: block;
 }
 
 /* ---------- App Container ---------- */
 .app-container {
   display: flex;
   flex-direction: column;
-  height: auto;
-  width: 100%;                  /* Always full width */
-  max-width: none;              /* Remove cap */
-  margin: 0;                    /* No centering margin */
+  height: 100%;
+  width: 100%;
+  margin: 0;
   box-sizing: border-box;
   padding: env(safe-area-inset-top, 0)
            env(safe-area-inset-right, 0)
            env(safe-area-inset-bottom, 0)
            env(safe-area-inset-left, 0);
+}
+
+/* Desktop “phone preview” look */
+@media (min-width: 901px) {
+  .app-container {
+    max-width: 480px;
+    margin: 0 auto;
+    padding-left: 10px;
+    padding-right: 10px;
+  }
 }
 
 /* ---------- Title ---------- */
@@ -93,9 +98,8 @@ h1 {
 h2 {
   font-size: clamp(22px, 4vw, 36px);
   font-weight: bold;
-  margin: 8px 0 6px 0;
+  margin: 8px 10px 6px 10px;
   text-align: left;
-  padding-left: 10px;
 }
 .progress-inline {
   font-size: clamp(20px, 4vw, 36px);
@@ -111,6 +115,8 @@ h2 {
   display: flex;
   justify-content: center;
   align-items: center;
+  padding: 0 10px;
+  box-sizing: border-box;
 }
 .image-wrapper img {
   width: 100%;
@@ -118,6 +124,7 @@ h2 {
   opacity: 1;
   transition: opacity 0.3s ease-in-out;
   object-fit: contain;
+  max-height: 50vh; /* will be overridden by JS for perfect fit */
 }
 .image-wrapper img.fade-out { opacity: 0; }
 .image-wrapper img.fade-in { opacity: 1; }
@@ -329,6 +336,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 ImgEl.classList.remove("fade-out");
                 ImgEl.classList.add("fade-in");
                 setTimeout(() => ImgEl.classList.remove("fade-in"), 300);
+                fitToViewport(); // ensure new image height stays capped
               };
             }, 150);
           }, Delay);
@@ -338,8 +346,11 @@ document.addEventListener("DOMContentLoaded", () => {
       .catch(err => console.error("Error:", err));
     });
   });
+
+  fitToViewport();
 });
 
+/* Results close -> reset + re-fit */
 function closeResults() {
   const currentSeq = ++sequence;
 
@@ -359,46 +370,54 @@ function closeResults() {
       ProgressBar.style.width = `${(data.progress / data.total) * 100}%`;
 
       document.getElementById("resultsModal").style.display = "none";
+      fitToViewport();
     })
     .catch(err => console.error("Error resetting:", err));
 }
 
-/* ---------- Scale app to viewport ---------- */
-function scaleAppToViewport() {
-  const wrapper = document.querySelector('.app-scale-wrapper');
-  if (!wrapper) return;
+/* ---------- Fit only the image to the viewport (no width scaling) ---------- */
+function fitToViewport() {
+  const vv = window.visualViewport;
+  const viewportH = vv ? vv.height : window.innerHeight;
 
-  const viewportHeight = window.visualViewport?.height || window.innerHeight;
-  const app = document.querySelector('.app-container');
-  const appHeight = app.scrollHeight;
+  const container = document.querySelector('.app-container');
+  const header = document.querySelector('header');
+  const footer = document.querySelector('footer');
+  const slot = document.querySelector('.slot-banner');
+  const h2s = document.querySelectorAll('main h2');
+  const image = document.getElementById('formation-image');
+  const wrapper = document.getElementById('image-area');
 
-  const scale = Math.min(viewportHeight / appHeight, 1);
-  wrapper.style.transform = `scale(${scale})`;
+  if (!image || !container) return;
 
-  const offsetY = (viewportHeight - appHeight * scale) / 2;
-  wrapper.style.marginTop = offsetY > 0 ? `${offsetY}px` : '0';
+  // Sum heights of non-image parts
+  let occupied = 0;
+  const add = el => { if (el) occupied += el.offsetHeight; };
+  add(header);
+  add(slot);
+  h2s.forEach(add);
+  add(document.querySelector('.buttons'));
+  add(footer);
+
+  // Include container vertical paddings
+  const cs = getComputedStyle(container);
+  occupied += parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
+
+  // Leave a tiny breathing room
+  const available = Math.max(120, viewportH - occupied - 8);
+
+  // Cap image/wrapper height so nothing overflows vertically
+  image.style.maxHeight = available + 'px';
+  wrapper.style.maxHeight = available + 'px';
 }
 
-window.addEventListener('load', scaleAppToViewport);
-window.addEventListener('resize', scaleAppToViewport);
+/* Refit when the viewport changes (address bar show/hide, rotation, etc.) */
+window.addEventListener('load', fitToViewport);
+window.addEventListener('resize', fitToViewport);
 if (window.visualViewport) {
-  window.visualViewport.addEventListener('resize', scaleAppToViewport);
-  window.visualViewport.addEventListener('scroll', scaleAppToViewport);
+  window.visualViewport.addEventListener('resize', fitToViewport);
+  window.visualViewport.addEventListener('scroll', fitToViewport);
 }
-
-/* ---------- DuckDuckGo / mobile viewport compensation ---------- */
-function adjustForDuckDuckGo() {
-  const ua = navigator.userAgent.toLowerCase();
-  if (ua.includes("duckduckgo") || ua.includes("firefox") || ua.includes("samsungbrowser")) {
-    const wrapper = document.querySelector(".app-scale-wrapper");
-    if (wrapper && wrapper.style.transform) {
-      const currentScale = parseFloat(wrapper.style.transform.replace(/[^0-9.]/g, "")) || 1;
-      wrapper.style.transform = `scale(${currentScale * 0.97})`;
-      wrapper.style.transformOrigin = "top center";
-    }
-  }
-}
-window.addEventListener("load", adjustForDuckDuckGo);
 </script>
 </body>
 </html>
