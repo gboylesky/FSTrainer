@@ -104,15 +104,6 @@ h2 {
 .image-wrapper img.fade-out { opacity: 0; }
 .image-wrapper img.fade-in { opacity: 1; }
 
-/* ✅ Applies only in PWA (standalone) mode */
-@media (display-mode: standalone) {
-  img#formation-image {
-    max-height: 55vh; /* adjust until the Progress bar is visible */
-    object-fit: contain;
-    margin-top: 0;
-  }
-}
-
 .overlay {
   position: absolute;
   top: 50%;
@@ -234,12 +225,13 @@ footer {
 @media (display-mode: standalone) {
   html, body {
     height: 100%;
-    overflow-y: auto;
-    overscroll-behavior: contain;
+    overflow-y: hidden; /* prevents scrolling */
+    overscroll-behavior: none;
   }
   .app-container {
-    min-height: 100svh;
-    padding-bottom: calc(env(safe-area-inset-bottom, 0) + 12px);
+    min-height: 100dvh; /* dynamic height that matches screen exactly */
+    padding-bottom: calc(env(safe-area-inset-bottom, 0) + 10px);
+    overflow: hidden;
   }
   footer {
     padding-bottom: calc(env(safe-area-inset-bottom, 0) + 8px);
