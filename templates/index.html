@@ -43,10 +43,19 @@ html, body {
   display: flex;
   flex-direction: column;
   height: auto;
-  max-width: 480px;
+  max-width: 480px;               /* ✅ keep for browser mode */
   margin: 0 auto;
   box-sizing: border-box;
   padding: 0 10px env(safe-area-inset-bottom, 0);
+}
+
+/* ✅ Fill full width in PWA mode only */
+@media (display-mode: standalone) {
+  .app-container {
+    width: 100vw;                 /* full width on PWA */
+    max-width: none;              /* remove 480px cap */
+    margin: 0;                    /* remove auto-centering */
+  }
 }
 
 /* ---------- Title ---------- */
@@ -210,7 +219,6 @@ footer {
   cursor: pointer;
 }
 .close-x:hover { color: white; }
-
 </style>
 </head>
 
