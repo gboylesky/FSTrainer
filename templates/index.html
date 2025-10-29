@@ -21,30 +21,32 @@ html, body {
   margin: 0;
   padding: 0;
   height: 100%;
-}
-
-body {
+  overflow: hidden;
   background-color: #1e1e1e;
   color: white;
   font-family: 'Segoe UI', sans-serif;
   text-align: center;
-  overflow-y: auto;
+}
+
+/* ---------- Scaling wrapper ---------- */
+.app-scale-wrapper {
+  transform-origin: top center;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
 }
 
 /* ---------- App Container ---------- */
 .app-container {
   display: flex;
   flex-direction: column;
-  height: 100svh;
+  height: auto;
   max-width: 480px;
   margin: 0 auto;
   box-sizing: border-box;
-  padding: 0 10px env(safe-area-inset-bottom, 0); /* ✅ removed +12px */
-}
-
-main.content {
-  flex: 1 1 auto; /* allow it to shrink so footer stays visible */
-  overflow: hidden;
+  padding: 0 10px env(safe-area-inset-bottom, 0);
 }
 
 /* ---------- Title ---------- */
@@ -209,67 +211,43 @@ footer {
 }
 .close-x:hover { color: white; }
 
-/* ---------- Responsive height scaling ---------- */
-@media (max-height: 750px) {
-  h1 { font-size: clamp(24px, 5vw, 36px); margin: 8px 0 4px 0; }
-  h2 { font-size: clamp(18px, 4vw, 28px); margin: 4px 0 2px 0; }
-  .progress-inline { font-size: clamp(16px, 3.5vw, 24px); }
-  .overlay { font-size: clamp(28px, 7vw, 50px); }
-  .buttons { gap: 6px; margin: 4px 0 10px 0; }
-  .buttons button { font-size: 16px; padding: 5px; }
-  .progress-bar-container { height: 18px; margin-bottom: 4px; }
-  .slot-banner { height: 30px; }
-}
-
-/* ---------- PWA container behavior ---------- */
-@media (display-mode: standalone) {
-  html, body {
-    height: 100%;
-    overflow-y: hidden;
-    overscroll-behavior: none;
-  }
-  .app-container {
-    height: 100svh; /* exact visible height */
-    padding: 0 10px env(safe-area-inset-bottom, 0); /* ✅ corrected */
-    overflow: hidden;
-    box-sizing: border-box;
-  }
-}
 </style>
 </head>
 
 <body>
-<div class="app-container">
-  <header>
-    <h1>FS Randoms Trainer</h1>
-    <div class="slot-banner">
-      <img src="{{ url_for('static', filename='slots.png') }}" alt="Slot Positions">
-    </div>
-  </header>
+<div class="app-scale-wrapper">
+  <div class="app-container">
+    <header>
+      <h1>FS Randoms Trainer</h1>
+      <div class="slot-banner">
+        <img src="{{ url_for('static', filename='slots.png') }}" alt="Slot Positions">
+      </div>
+    </header>
 
-  <main class="content">
-    <h2>Formation</h2>
-    <div class="image-wrapper" id="image-area">
-      <img id="formation-image" src="data:image/png;base64,{{ img_data }}" alt="Formation">
-      {% if msg %}
-      <div id="overlay" class="overlay" style="color:{{ color }}">{{ msg }}</div>
-      {% endif %}
-    </div>
+    <main class="content">
+      <h2>Formation</h2>
+      <div class="image-wrapper" id="image-area">
+        <img id="formation-image" src="data:image/png;base64,{{ img_data }}" alt="Formation">
+        {% if msg %}
+        <div id="overlay" class="overlay" style="color:{{ color }}">{{ msg }}</div>
+        {% endif %}
+      </div>
 
-    <h2>Letter</h2>
-    <form class="buttons" id="GuessForm">
-      {% for label in labels %}
-      <button type="button" value="{{ label }}">{{ label }}</button>
-      {% endfor %}
-    </form>
-  </main>
+      <h2>Letter</h2>
+      <form class="buttons" id="GuessForm">
+        {% for label in labels %}
+        <button type="button" value="{{ label }}">{{ label }}</button>
+        {% endfor %}
+      </form>
+    </main>
 
-  <footer>
-    <h2>Progress <span class="progress-inline">({{ progress }} of {{ total }})</span></h2>
-    <div class="progress-bar-container">
-      <div class="progress-bar"></div>
-    </div>
-  </footer>
+    <footer>
+      <h2>Progress <span class="progress-inline">({{ progress }} of {{ total }})</span></h2>
+      <div class="progress-bar-container">
+        <div class="progress-bar"></div>
+      </div>
+    </footer>
+  </div>
 </div>
 
 <div class="modal" id="resultsModal">
@@ -282,7 +260,7 @@ footer {
 </div>
 
 <script>
-let sequence = 0; // used to ignore late /Guess responses
+let sequence = 0;
 
 document.addEventListener("DOMContentLoaded", () => {
   const ImgEl = document.getElementById("formation-image");
@@ -294,7 +272,7 @@ document.addEventListener("DOMContentLoaded", () => {
     btn.addEventListener("click", () => {
       const Guess = btn.value;
       Buttons.forEach(b => b.disabled = true);
-      const currentSeq = ++sequence; // advance sequence for this guess
+      const currentSeq = ++sequence;
 
       fetch("/Guess", {
         method: "POST",
@@ -302,8 +280,7 @@ document.addEventListener("DOMContentLoaded", () => {
       })
       .then(r => r.json())
       .then(data => {
-        if (currentSeq !== sequence) return; // ignore outdated response
-
+        if (currentSeq !== sequence) return;
         if (ProgressInline) ProgressInline.textContent = `(${data.progress} of ${data.total})`;
         if (ProgressBar) {
           const Percent = (data.progress / data.total) * 100;
@@ -355,9 +332,8 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-/* ---------- Reset and close Results ---------- */
 function closeResults() {
-  const currentSeq = ++sequence; // invalidate all prior guesses
+  const currentSeq = ++sequence;
 
   fetch("/Reset", { method: "POST" })
     .then(r => r.json())
@@ -377,6 +353,29 @@ function closeResults() {
       document.getElementById("resultsModal").style.display = "none";
     })
     .catch(err => console.error("Error resetting:", err));
+}
+
+/* ---------- Scale app to viewport ---------- */
+function scaleAppToViewport() {
+  const wrapper = document.querySelector('.app-scale-wrapper');
+  if (!wrapper) return;
+
+  const viewportHeight = window.visualViewport?.height || window.innerHeight;
+  const app = document.querySelector('.app-container');
+  const appHeight = app.scrollHeight;
+
+  const scale = Math.min(viewportHeight / appHeight, 1);
+  wrapper.style.transform = `scale(${scale})`;
+
+  const offsetY = (viewportHeight - appHeight * scale) / 2;
+  wrapper.style.marginTop = offsetY > 0 ? `${offsetY}px` : '0';
+}
+
+window.addEventListener('load', scaleAppToViewport);
+window.addEventListener('resize', scaleAppToViewport);
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', scaleAppToViewport);
+  window.visualViewport.addEventListener('scroll', scaleAppToViewport);
 }
 </script>
 </body>
