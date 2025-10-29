@@ -369,10 +369,12 @@ function scaleAppToViewport() {
   if (!wrapper) return;
 
   const viewportHeight = window.visualViewport?.height || window.innerHeight;
+  const viewportWidth = window.visualViewport?.width || window.innerWidth;
   const app = document.querySelector('.app-container');
   const appHeight = app.scrollHeight;
+  const appWidth = app.scrollWidth;
 
-  const scale = Math.min(viewportHeight / appHeight, 1);
+  const scale = Math.min(viewportHeight / appHeight, viewportWidth / appWidth, 1);
   wrapper.style.transform = `scale(${scale})`;
 
   const offsetY = (viewportHeight - appHeight * scale) / 2;
