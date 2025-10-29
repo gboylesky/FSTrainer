@@ -8,224 +8,179 @@
 <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
 <title>FS Randoms Trainer</title>
 
-<script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/service-worker.js')
-      .then(() => console.log("✅ Service worker registered"))
-      .catch(err => console.error("Service worker registration failed:", err));
-  }
-</script>
-
 <style>
-/* ---------- Base ---------- */
 html, body {
   margin: 0;
   padding: 0;
   height: 100%;
   width: 100%;
-  max-width: 100%;
-  overflow: hidden;           /* no vertical scroll */
-  overflow-x: hidden;
   background-color: #1e1e1e;
   color: white;
   font-family: 'Segoe UI', sans-serif;
   text-align: center;
+  overflow: hidden;
 }
 
-/* ---------- Wrapper (no transforms) ---------- */
+/* --------- Layout wrappers --------- */
 .app-scale-wrapper {
   width: 100%;
-  height: 100dvh;             /* use dynamic viewport height */
-  display: block;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
 }
 
-/* ---------- App Container ---------- */
 .app-container {
   display: flex;
   flex-direction: column;
-  height: 100%;
   width: 100%;
+  height: 100%;
   margin: 0;
   box-sizing: border-box;
-  padding: env(safe-area-inset-top, 0)
-           env(safe-area-inset-right, 0)
-           env(safe-area-inset-bottom, 0)
-           env(safe-area-inset-left, 0);
+  padding: env(safe-area-inset-top,0) env(safe-area-inset-right,0)
+           env(safe-area-inset-bottom,0) env(safe-area-inset-left,0);
+  max-width: 480px;
 }
 
-/* Desktop “phone preview” look */
 @media (min-width: 901px) {
-  .app-container {
-    max-width: 480px;
-    margin: 0 auto;
-    padding-left: 10px;
-    padding-right: 10px;
-  }
+  .app-container { margin: 0 auto; }
 }
 
-/* ---------- Title ---------- */
+/* --------- Header --------- */
 h1 {
   font-size: clamp(24px, 5vw, 42px);
+  margin: 16px 0 8px 0;
   font-weight: bold;
-  margin: 20px 0 10px 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
 }
 
-/* ---------- Slot banner ---------- */
 .slot-banner {
   width: 100%;
   height: 40px;
   display: flex;
   justify-content: center;
   align-items: center;
-  overflow: hidden;
   margin-bottom: 10px;
-  background-color: #1e1e1e;
 }
 .slot-banner img {
-  width: auto;
-  max-width: 100%;
   height: 100%;
   object-fit: contain;
-  border-radius: 6px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.5);
 }
 
-/* ---------- Headings ---------- */
+/* --------- Main content --------- */
+main.content {
+  flex: 1 1 auto;              /* fills available height */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+}
+
 h2 {
-  font-size: clamp(22px, 4vw, 36px);
-  font-weight: bold;
-  margin: 8px 10px 6px 10px;
+  font-size: clamp(22px, 4vw, 32px);
+  margin: 6px 10px;
   text-align: left;
 }
-.progress-inline {
-  font-size: clamp(20px, 4vw, 36px);
-  font-weight: bold;
-  color: white;
-  margin-left: 6px;
-}
 
-/* ---------- Image and Overlay ---------- */
+/* --------- Image area --------- */
 .image-wrapper {
-  position: relative;
-  width: 100%;
+  flex: 1 1 auto;              /* grow to fill */
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 0 10px;
-  box-sizing: border-box;
+  margin: 0 10px;
+  position: relative;
+  overflow: hidden;
 }
 .image-wrapper img {
   width: 100%;
-  height: auto;
-  opacity: 1;
-  transition: opacity 0.3s ease-in-out;
+  height: 100%;
   object-fit: contain;
-  max-height: 50vh; /* will be overridden by JS for perfect fit */
+  transition: opacity 0.3s ease-in-out;
 }
 .image-wrapper img.fade-out { opacity: 0; }
 .image-wrapper img.fade-in { opacity: 1; }
 
-/* ---------- Overlay ---------- */
 .overlay {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: clamp(46px, 8vw, 70px);
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  font-size: clamp(40px, 8vw, 70px);
   font-weight: bold;
   text-shadow: 0 0 15px rgba(0,0,0,0.9);
   pointer-events: none;
-  white-space: nowrap;
-  opacity: 1;
   animation: fadeout 0.8s ease-in forwards;
 }
-@keyframes fadeout {
-  0%,80% {opacity:1;}
-  100% {opacity:0;}
-}
+@keyframes fadeout { 0%,80%{opacity:1;} 100%{opacity:0;} }
 
-/* ---------- Buttons ---------- */
+/* --------- Buttons --------- */
 .buttons {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-  margin: 10px 10px 20px 10px;
+  gap: 8px;
+  padding: 10px;
+  flex: 0 0 auto;             /* fixed height region */
 }
 .buttons button {
-  font-size: 24px;
-  padding: 16px 8px;
-  border-radius: 10px;
+  font-size: 20px;
+  padding: 10px 6px;
+  border-radius: 8px;
   background: #333;
   color: white;
   border: 2px solid #555;
   cursor: pointer;
 }
-.buttons button:hover { background-color: #444; }
-.buttons button:active {
-  background-color: #555;
-  transform: scale(0.97);
-}
+.buttons button:hover { background:#444; }
+.buttons button:active { background:#555; transform:scale(0.97); }
 
-/* ---------- Progress Bar ---------- */
+/* --------- Footer --------- */
 footer {
-  padding: 0 10px calc(env(safe-area-inset-bottom, 0) + 8px);
+  flex: 0 0 auto;
+  padding: 0 10px calc(env(safe-area-inset-bottom,0) + 8px);
 }
 .progress-bar-container {
-  background-color: #333;
-  border-radius: 10px;
-  overflow: hidden;
-  height: 25px;
-  width: 100%;
-  margin-bottom: 8px;
+  background:#333;
+  border-radius:10px;
+  overflow:hidden;
+  height:25px;
+  width:100%;
+  margin-bottom:8px;
 }
 .progress-bar {
-  height: 100%;
-  background-color: lime;
+  height:100%;
+  background:lime;
   width: {{ (progress/total*100) if total>0 else 0 }}%;
-  transition: width 0.3s ease-in-out;
+  transition:width 0.3s ease-in-out;
+}
+.progress-inline {
+  font-weight:bold;
+  margin-left:6px;
 }
 
-/* ---------- Modal ---------- */
+/* --------- Modal --------- */
 .modal {
-  display: {% if show_results %}flex{% else %}none{% endif %};
-  position: fixed;
-  inset: 0;
-  background: none;
-  justify-content: center;
-  align-items: center;
-  z-index: 999;
+  display:{% if show_results %}flex{% else %}none{% endif %};
+  position:fixed;
+  inset:0;
+  justify-content:center;
+  align-items:center;
+  z-index:999;
 }
 .modal-content {
-  background-color: #2f2f2f;
-  padding: clamp(20px, 5vw, 45px);
-  border-radius: 12px;
-  text-align: center;
-  width: clamp(240px, 70%, 330px);
-  position: relative;
-  box-sizing: border-box;
+  background:#2f2f2f;
+  padding:clamp(20px,5vw,40px);
+  border-radius:12px;
+  text-align:center;
+  width:clamp(240px,70%,330px);
+  position:relative;
 }
-.modal-content h2 {
-  margin: 0 0 15px 0;
-  font-size: clamp(26px, 6vw, 38px);
-}
-.modal-content p {
-  font-size: clamp(20px, 5vw, 30px);
-  margin: 10px 0;
-}
+.modal-content h2{margin:0 0 15px 0;font-size:clamp(26px,6vw,38px);}
+.modal-content p{font-size:clamp(20px,5vw,30px);margin:10px 0;}
 .close-x {
-  position: absolute;
-  top: 10px;
-  right: 18px;
-  font-size: clamp(22px, 6vw, 30px);
-  color: #aaa;
-  font-weight: bold;
-  cursor: pointer;
+  position:absolute;top:10px;right:18px;
+  font-size:clamp(22px,6vw,30px);
+  color:#aaa;font-weight:bold;cursor:pointer;
 }
-.close-x:hover { color: white; }
+.close-x:hover{color:white;}
 </style>
 </head>
 
@@ -258,9 +213,7 @@ footer {
 
     <footer>
       <h2>Progress <span class="progress-inline">({{ progress }} of {{ total }})</span></h2>
-      <div class="progress-bar-container">
-        <div class="progress-bar"></div>
-      </div>
+      <div class="progress-bar-container"><div class="progress-bar"></div></div>
     </footer>
   </div>
 </div>
@@ -275,148 +228,76 @@ footer {
 </div>
 
 <script>
-let sequence = 0;
+let sequence=0;
+document.addEventListener("DOMContentLoaded",()=>{
+  const Img=document.getElementById("formation-image");
+  const ProgInline=document.querySelector(".progress-inline");
+  const ProgBar=document.querySelector(".progress-bar");
+  const Buttons=document.querySelectorAll("#GuessForm button");
 
-document.addEventListener("DOMContentLoaded", () => {
-  const ImgEl = document.getElementById("formation-image");
-  const ProgressInline = document.querySelector(".progress-inline");
-  const ProgressBar = document.querySelector(".progress-bar");
-  const Buttons = document.querySelectorAll("#GuessForm button");
+  Buttons.forEach(btn=>{
+    btn.addEventListener("click",()=>{
+      const Guess=btn.value;
+      Buttons.forEach(b=>b.disabled=true);
+      const currentSeq=++sequence;
 
-  Buttons.forEach(btn => {
-    btn.addEventListener("click", () => {
-      const Guess = btn.value;
-      Buttons.forEach(b => b.disabled = true);
-      const currentSeq = ++sequence;
+      fetch("/Guess",{method:"POST",body:new URLSearchParams({guess:Guess})})
+      .then(r=>r.json()).then(data=>{
+        if(currentSeq!==sequence)return;
+        if(ProgInline)ProgInline.textContent=`(${data.progress} of ${data.total})`;
+        if(ProgBar)ProgBar.style.width=`${(data.progress/data.total)*100}%`;
 
-      fetch("/Guess", {
-        method: "POST",
-        body: new URLSearchParams({ guess: Guess })
-      })
-      .then(r => r.json())
-      .then(data => {
-        if (currentSeq !== sequence) return;
-        if (ProgressInline) ProgressInline.textContent = `(${data.progress} of ${data.total})`;
-        if (ProgressBar) {
-          const Percent = (data.progress / data.total) * 100;
-          ProgressBar.style.width = `${Percent}%`;
-        }
-
-        if (data.done) {
-          setTimeout(() => {
-            if (currentSeq !== sequence) return;
-            document.getElementById("resultsModal").style.display = "flex";
-            const modal = document.querySelector(".modal-content");
-            modal.querySelector("p:nth-child(3)").textContent = `✅ Correct: ${data.correct}`;
-            modal.querySelector("p:nth-child(4)").textContent = `❌ Incorrect: ${data.incorrect}`;
-          }, 400);
-          Buttons.forEach(b => b.disabled = false);
+        if(data.done){
+          setTimeout(()=>{
+            if(currentSeq!==sequence)return;
+            document.getElementById("resultsModal").style.display="flex";
+            const m=document.querySelector(".modal-content");
+            m.querySelector("p:nth-child(3)").textContent=`✅ Correct: ${data.correct}`;
+            m.querySelector("p:nth-child(4)").textContent=`❌ Incorrect: ${data.incorrect}`;
+          },400);
+          Buttons.forEach(b=>b.disabled=false);
           return;
         }
 
-        let overlay = document.getElementById("overlay");
-        if (overlay) overlay.remove();
-        overlay = document.createElement("div");
-        overlay.id = "overlay";
-        overlay.className = "overlay";
-        overlay.style.color = data.color;
-        overlay.textContent = data.msg;
+        let overlay=document.getElementById("overlay");
+        if(overlay)overlay.remove();
+        overlay=document.createElement("div");
+        overlay.id="overlay";overlay.className="overlay";
+        overlay.style.color=data.color;overlay.textContent=data.msg;
         document.querySelector(".image-wrapper").appendChild(overlay);
-        overlay.style.animation = "fadeout 0.8s ease-in forwards";
 
-        if (data.color !== "red") {
-          const Delay = 800;
-          setTimeout(() => {
-            if (currentSeq !== sequence) return;
-            ImgEl.classList.add("fade-out");
-            setTimeout(() => {
-              if (currentSeq !== sequence) return;
-              ImgEl.src = "data:image/png;base64," + data.img_data;
-              ImgEl.onload = () => {
-                ImgEl.classList.remove("fade-out");
-                ImgEl.classList.add("fade-in");
-                setTimeout(() => ImgEl.classList.remove("fade-in"), 300);
-                fitToViewport(); // ensure new image height stays capped
-              };
-            }, 150);
-          }, Delay);
+        if(data.color!=="red"){
+          const Delay=800;
+          setTimeout(()=>{
+            if(currentSeq!==sequence)return;
+            Img.classList.add("fade-out");
+            setTimeout(()=>{
+              if(currentSeq!==sequence)return;
+              Img.src="data:image/png;base64,"+data.img_data;
+              Img.onload=()=>{Img.classList.remove("fade-out");Img.classList.add("fade-in");
+                setTimeout(()=>Img.classList.remove("fade-in"),300);};
+            },150);
+          },Delay);
         }
-        setTimeout(() => Buttons.forEach(b => b.disabled = false), 900);
-      })
-      .catch(err => console.error("Error:", err));
+        setTimeout(()=>Buttons.forEach(b=>b.disabled=false),900);
+      }).catch(e=>console.error("Error:",e));
     });
   });
-
-  fitToViewport();
 });
 
-/* Results close -> reset + re-fit */
-function closeResults() {
-  const currentSeq = ++sequence;
-
-  fetch("/Reset", { method: "POST" })
-    .then(r => r.json())
-    .then(data => {
-      if (currentSeq !== sequence) return;
-
-      const ImgEl = document.getElementById("formation-image");
-      ImgEl.src = "data:image/png;base64," + data.img_data;
-      ImgEl.classList.add("fade-in");
-      setTimeout(() => ImgEl.classList.remove("fade-in"), 300);
-
-      const ProgressInline = document.querySelector(".progress-inline");
-      const ProgressBar = document.querySelector(".progress-bar");
-      ProgressInline.textContent = `(${data.progress} of ${data.total})`;
-      ProgressBar.style.width = `${(data.progress / data.total) * 100}%`;
-
-      document.getElementById("resultsModal").style.display = "none";
-      fitToViewport();
-    })
-    .catch(err => console.error("Error resetting:", err));
-}
-
-/* ---------- Fit only the image to the viewport (no width scaling) ---------- */
-function fitToViewport() {
-  const vv = window.visualViewport;
-  const viewportH = vv ? vv.height : window.innerHeight;
-
-  const container = document.querySelector('.app-container');
-  const header = document.querySelector('header');
-  const footer = document.querySelector('footer');
-  const slot = document.querySelector('.slot-banner');
-  const h2s = document.querySelectorAll('main h2');
-  const image = document.getElementById('formation-image');
-  const wrapper = document.getElementById('image-area');
-
-  if (!image || !container) return;
-
-  // Sum heights of non-image parts
-  let occupied = 0;
-  const add = el => { if (el) occupied += el.offsetHeight; };
-  add(header);
-  add(slot);
-  h2s.forEach(add);
-  add(document.querySelector('.buttons'));
-  add(footer);
-
-  // Include container vertical paddings
-  const cs = getComputedStyle(container);
-  occupied += parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
-
-  // Leave a tiny breathing room
-  const available = Math.max(120, viewportH - occupied - 8);
-
-  // Cap image/wrapper height so nothing overflows vertically
-  image.style.maxHeight = available + 'px';
-  wrapper.style.maxHeight = available + 'px';
-}
-
-/* Refit when the viewport changes (address bar show/hide, rotation, etc.) */
-window.addEventListener('load', fitToViewport);
-window.addEventListener('resize', fitToViewport);
-if (window.visualViewport) {
-  window.visualViewport.addEventListener('resize', fitToViewport);
-  window.visualViewport.addEventListener('scroll', fitToViewport);
+function closeResults(){
+  const currentSeq=++sequence;
+  fetch("/Reset",{method:"POST"}).then(r=>r.json()).then(data=>{
+    if(currentSeq!==sequence)return;
+    const Img=document.getElementById("formation-image");
+    Img.src="data:image/png;base64,"+data.img_data;
+    Img.classList.add("fade-in");setTimeout(()=>Img.classList.remove("fade-in"),300);
+    const ProgInline=document.querySelector(".progress-inline");
+    const ProgBar=document.querySelector(".progress-bar");
+    ProgInline.textContent=`(${data.progress} of ${data.total})`;
+    ProgBar.style.width=`${(data.progress/data.total)*100}%`;
+    document.getElementById("resultsModal").style.display="none";
+  }).catch(e=>console.error("Error:",e));
 }
 </script>
 </body>
