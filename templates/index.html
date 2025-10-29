@@ -35,14 +35,13 @@ body {
 .app-container {
   display: flex;
   flex-direction: column;
-  min-height: 100svh; /* dynamic viewport height for browsers */
+  min-height: 100svh;
   max-width: 480px;
   margin: 0 auto;
   box-sizing: border-box;
   padding: 0 10px calc(env(safe-area-inset-bottom, 0) + 12px);
 }
 
-/* Reset flex item spacing to restore normal flow */
 header, main, footer {
   margin: 0;
   padding: 0;
@@ -57,7 +56,7 @@ h1 {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 100%;   /* keeps it inside the 480 px container */
+  max-width: 100%;
   display: block;
 }
 
@@ -108,19 +107,12 @@ h2 {
   height: auto;
   opacity: 1;
   transition: opacity 0.3s ease-in-out;
-  object-fit: contain; /* ensure it can shrink cleanly */
+  object-fit: contain;
 }
 .image-wrapper img.fade-out { opacity: 0; }
 .image-wrapper img.fade-in { opacity: 1; }
 
-/* ✅ Fallback cap only in PWA (kept as backup; dynamic JS will override) */
-@media (display-mode: standalone) {
-  img#formation-image {
-    max-height: 55vh;
-    margin-top: 0;
-  }
-}
-
+/* ---------- Overlay ---------- */
 .overlay {
   position: absolute;
   top: 50%;
@@ -137,14 +129,6 @@ h2 {
 @keyframes fadeout {
   0%,80% {opacity:1;}
   100% {opacity:0;}
-}
-
-/* ✅ Stronger green for mobile */
-@media (max-width: 768px) {
-  .overlay[style*="lime"] {
-      color: #00e600 !important;
-      text-shadow: 0 0 20px rgba(0, 255, 0, 0.9);
-  }
 }
 
 /* ---------- Buttons ---------- */
@@ -188,7 +172,7 @@ footer {
   transition: width 0.3s ease-in-out;
 }
 
-/* ---------- Modal (Results) ---------- */
+/* ---------- Modal ---------- */
 .modal {
   display: {% if show_results %}flex{% else %}none{% endif %};
   position: fixed;
@@ -242,66 +226,64 @@ footer {
 @media (display-mode: standalone) {
   html, body {
     height: 100%;
-    overflow-y: hidden;       /* no scrolling in PWA */
+    overflow-y: hidden;
     overscroll-behavior: none;
   }
   .app-container {
-    min-height: 100dvh;       /* visible screen height in PWA */
+    min-height: 100dvh;
     padding-bottom: calc(env(safe-area-inset-bottom, 0) + 12px);
     overflow: hidden;
-  }
-  footer {
-    padding-bottom: calc(env(safe-area-inset-bottom, 0) + 8px);
   }
 }
 </style>
 </head>
 
 <body>
-  <div class="app-container">
-    <header>
-      <h1>FS Randoms Trainer</h1>
-      <div class="slot-banner">
-        <img src="{{ url_for('static', filename='slots.png') }}" alt="Slot Positions">
-      </div>
-    </header>
-
-    <main class="content">
-      <h2>Formation</h2>
-      <div class="image-wrapper" id="image-area">
-        <img id="formation-image" src="data:image/png;base64,{{ img_data }}" alt="Formation">
-        {% if msg %}
-        <div id="overlay" class="overlay" style="color:{{ color }}">{{ msg }}</div>
-        {% endif %}
-      </div>
-
-      <h2>Letter</h2>
-      <form class="buttons" id="GuessForm">
-        {% for label in labels %}
-        <button type="button" value="{{ label }}">{{ label }}</button>
-        {% endfor %}
-      </form>
-    </main>
-
-    <footer>
-      <h2>Progress <span class="progress-inline">({{ progress }} of {{ total }})</span></h2>
-      <div class="progress-bar-container">
-        <div class="progress-bar"></div>
-      </div>
-    </footer>
-  </div>
-
-  <div class="modal" id="resultsModal">
-    <div class="modal-content">
-      <span class="close-x" onclick="closeResults()">×</span>
-      <h2>Results</h2>
-      <p style="color:lime;">✅ Correct: {{ correct }}</p>
-      <p style="color:red;">❌ Incorrect: {{ incorrect }}</p>
+<div class="app-container">
+  <header>
+    <h1>FS Randoms Trainer</h1>
+    <div class="slot-banner">
+      <img src="{{ url_for('static', filename='slots.png') }}" alt="Slot Positions">
     </div>
+  </header>
+
+  <main class="content">
+    <h2>Formation</h2>
+    <div class="image-wrapper" id="image-area">
+      <img id="formation-image" src="data:image/png;base64,{{ img_data }}" alt="Formation">
+      {% if msg %}
+      <div id="overlay" class="overlay" style="color:{{ color }}">{{ msg }}</div>
+      {% endif %}
+    </div>
+
+    <h2>Letter</h2>
+    <form class="buttons" id="GuessForm">
+      {% for label in labels %}
+      <button type="button" value="{{ label }}">{{ label }}</button>
+      {% endfor %}
+    </form>
+  </main>
+
+  <footer>
+    <h2>Progress <span class="progress-inline">({{ progress }} of {{ total }})</span></h2>
+    <div class="progress-bar-container">
+      <div class="progress-bar"></div>
+    </div>
+  </footer>
+</div>
+
+<div class="modal" id="resultsModal">
+  <div class="modal-content">
+    <span class="close-x" onclick="closeResults()">×</span>
+    <h2>Results</h2>
+    <p style="color:lime;">✅ Correct: {{ correct }}</p>
+    <p style="color:red;">❌ Incorrect: {{ incorrect }}</p>
   </div>
+</div>
 
 <script>
-/* ---------- Guess handling ---------- */
+let sequence = 0; // used to ignore late /Guess responses
+
 document.addEventListener("DOMContentLoaded", () => {
   const ImgEl = document.getElementById("formation-image");
   const ProgressInline = document.querySelector(".progress-inline");
@@ -312,6 +294,7 @@ document.addEventListener("DOMContentLoaded", () => {
     btn.addEventListener("click", () => {
       const Guess = btn.value;
       Buttons.forEach(b => b.disabled = true);
+      const currentSeq = ++sequence; // advance sequence for this guess
 
       fetch("/Guess", {
         method: "POST",
@@ -319,6 +302,8 @@ document.addEventListener("DOMContentLoaded", () => {
       })
       .then(r => r.json())
       .then(data => {
+        if (currentSeq !== sequence) return; // ignore outdated response
+
         if (ProgressInline) ProgressInline.textContent = `(${data.progress} of ${data.total})`;
         if (ProgressBar) {
           const Percent = (data.progress / data.total) * 100;
@@ -327,6 +312,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (data.done) {
           setTimeout(() => {
+            if (currentSeq !== sequence) return;
             document.getElementById("resultsModal").style.display = "flex";
             const modal = document.querySelector(".modal-content");
             modal.querySelector("p:nth-child(3)").textContent = `✅ Correct: ${data.correct}`;
@@ -349,8 +335,10 @@ document.addEventListener("DOMContentLoaded", () => {
         if (data.color !== "red") {
           const Delay = 800;
           setTimeout(() => {
+            if (currentSeq !== sequence) return;
             ImgEl.classList.add("fade-out");
             setTimeout(() => {
+              if (currentSeq !== sequence) return;
               ImgEl.src = "data:image/png;base64," + data.img_data;
               ImgEl.onload = () => {
                 ImgEl.classList.remove("fade-out");
@@ -367,11 +355,15 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-/* ---------- Results modal close ---------- */
+/* ---------- Reset and close Results ---------- */
 function closeResults() {
+  const currentSeq = ++sequence; // invalidate all prior guesses
+
   fetch("/Reset", { method: "POST" })
     .then(r => r.json())
     .then(data => {
+      if (currentSeq !== sequence) return;
+
       const ImgEl = document.getElementById("formation-image");
       ImgEl.src = "data:image/png;base64," + data.img_data;
       ImgEl.classList.add("fade-in");
@@ -383,61 +375,8 @@ function closeResults() {
       ProgressBar.style.width = `${(data.progress / data.total) * 100}%`;
 
       document.getElementById("resultsModal").style.display = "none";
-      fitImageForPWA(); // ensure sizing after reset
     })
     .catch(err => console.error("Error resetting:", err));
-}
-
-/* ---------- EXACT FIT FOR PWA (no scroll, footer visible) ---------- */
-function fitImageForPWA() {
-  const isPWA = window.matchMedia && window.matchMedia('(display-mode: standalone)').matches;
-  if (!isPWA) return;
-
-  const app = document.querySelector('.app-container');
-  const img = document.getElementById('formation-image');
-  const header = document.querySelector('header');
-  const headings = document.querySelectorAll('main h2');
-  const buttons = document.querySelector('.buttons');
-  const footer = document.querySelector('footer');
-
-  if (!app || !img || !header || !buttons || !footer || headings.length < 2) return;
-
-  // Use the real visible viewport height
-  const vh = (window.visualViewport && window.visualViewport.height) || window.innerHeight;
-
-  // Container paddings
-  const cs = getComputedStyle(app);
-  const padTop = parseFloat(cs.paddingTop) || 0;
-  const padBottom = parseFloat(cs.paddingBottom) || 0;
-
-  // Vertical margins for headings
-  const h0s = getComputedStyle(headings[0]);
-  const h1s = getComputedStyle(headings[1]);
-  const h0m = (parseFloat(h0s.marginTop) || 0) + (parseFloat(h0s.marginBottom) || 0);
-  const h1m = (parseFloat(h1s.marginTop) || 0) + (parseFloat(h1s.marginBottom) || 0);
-
-  // Sum fixed heights
-  const fixed = padTop + padBottom
-              + header.offsetHeight
-              + headings[0].offsetHeight + h0m
-              + headings[1].offsetHeight + h1m
-              + buttons.offsetHeight
-              + footer.offsetHeight;
-
-  // Available height for image
-  const available = Math.max(120, Math.floor(vh - fixed - 6)); // safety nudge
-
-  // Apply precise cap
-  img.style.maxHeight = available + 'px';
-}
-
-// Run on load & on viewport changes (rotation, keyboard, etc.)
-document.addEventListener('DOMContentLoaded', fitImageForPWA);
-window.addEventListener('resize', fitImageForPWA);
-window.addEventListener('orientationchange', fitImageForPWA);
-if (window.visualViewport) {
-  window.visualViewport.addEventListener('resize', fitImageForPWA);
-  window.visualViewport.addEventListener('scroll', fitImageForPWA);
 }
 </script>
 </body>
