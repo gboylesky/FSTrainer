@@ -39,7 +39,7 @@ body {
   max-width: 480px;
   margin: 0 auto;
   box-sizing: border-box;
-  padding: 0 10px calc(env(safe-area-inset-bottom, 0) + 12px);
+  padding: 0 10px env(safe-area-inset-bottom, 0); /* ✅ removed +12px */
 }
 
 header, main, footer {
@@ -229,10 +229,9 @@ footer {
     overflow-y: hidden;
     overscroll-behavior: none;
   }
-
   .app-container {
-    height: 100svh; /* the actual visible screen height */
-    padding: 0 10px env(safe-area-inset-bottom, 0); /* remove +12px */
+    height: 100svh; /* exact visible height */
+    padding: 0 10px env(safe-area-inset-bottom, 0); /* ✅ corrected */
     overflow: hidden;
     box-sizing: border-box;
   }
