@@ -36,7 +36,7 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  min-height: 100svh; /* ✅ dynamic viewport height fix */
+  min-height: 100svh; /* dynamic viewport height for browsers */
   max-width: 480px;
   margin: 0 auto;
   box-sizing: border-box;
@@ -100,9 +100,18 @@ h2 {
   height: auto;
   opacity: 1;
   transition: opacity 0.3s ease-in-out;
+  object-fit: contain; /* ensure it can shrink cleanly */
 }
 .image-wrapper img.fade-out { opacity: 0; }
 .image-wrapper img.fade-in { opacity: 1; }
+
+/* ✅ Fallback cap only in PWA (kept as backup; dynamic JS will override) */
+@media (display-mode: standalone) {
+  img#formation-image {
+    max-height: 55vh;
+    margin-top: 0;
+  }
+}
 
 .overlay {
   position: absolute;
@@ -154,7 +163,7 @@ h2 {
 
 /* ---------- Progress Bar ---------- */
 footer {
-  padding-bottom: calc(env(safe-area-inset-bottom, 0) + 8px); /* ✅ ensures bar visible */
+  padding-bottom: calc(env(safe-area-inset-bottom, 0) + 8px);
 }
 .progress-bar-container {
   background-color: #333;
@@ -221,16 +230,16 @@ footer {
   .slot-banner { height: 30px; }
 }
 
-/* ---------- PWA Fix ---------- */
+/* ---------- PWA container behavior ---------- */
 @media (display-mode: standalone) {
   html, body {
     height: 100%;
-    overflow-y: hidden; /* prevents scrolling */
+    overflow-y: hidden;       /* no scrolling in PWA */
     overscroll-behavior: none;
   }
   .app-container {
-    min-height: 100dvh; /* dynamic height that matches screen exactly */
-    padding-bottom: calc(env(safe-area-inset-bottom, 0) + 10px);
+    min-height: 100dvh;       /* visible screen height in PWA */
+    padding-bottom: calc(env(safe-area-inset-bottom, 0) + 12px);
     overflow: hidden;
   }
   footer {
@@ -284,6 +293,7 @@ footer {
   </div>
 
 <script>
+/* ---------- Guess handling ---------- */
 document.addEventListener("DOMContentLoaded", () => {
   const ImgEl = document.getElementById("formation-image");
   const ProgressInline = document.querySelector(".progress-inline");
@@ -349,6 +359,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
+/* ---------- Results modal close ---------- */
 function closeResults() {
   fetch("/Reset", { method: "POST" })
     .then(r => r.json())
@@ -364,8 +375,61 @@ function closeResults() {
       ProgressBar.style.width = `${(data.progress / data.total) * 100}%`;
 
       document.getElementById("resultsModal").style.display = "none";
+      fitImageForPWA(); // ensure sizing after reset
     })
     .catch(err => console.error("Error resetting:", err));
+}
+
+/* ---------- EXACT FIT FOR PWA (no scroll, footer visible) ---------- */
+function fitImageForPWA() {
+  const isPWA = window.matchMedia && window.matchMedia('(display-mode: standalone)').matches;
+  if (!isPWA) return;
+
+  const app = document.querySelector('.app-container');
+  const img = document.getElementById('formation-image');
+  const header = document.querySelector('header');
+  const headings = document.querySelectorAll('main h2');
+  const buttons = document.querySelector('.buttons');
+  const footer = document.querySelector('footer');
+
+  if (!app || !img || !header || !buttons || !footer || headings.length < 2) return;
+
+  // Use the real visible viewport height
+  const vh = (window.visualViewport && window.visualViewport.height) || window.innerHeight;
+
+  // Container paddings
+  const cs = getComputedStyle(app);
+  const padTop = parseFloat(cs.paddingTop) || 0;
+  const padBottom = parseFloat(cs.paddingBottom) || 0;
+
+  // Vertical margins for headings
+  const h0s = getComputedStyle(headings[0]);
+  const h1s = getComputedStyle(headings[1]);
+  const h0m = (parseFloat(h0s.marginTop) || 0) + (parseFloat(h0s.marginBottom) || 0);
+  const h1m = (parseFloat(h1s.marginTop) || 0) + (parseFloat(h1s.marginBottom) || 0);
+
+  // Sum fixed heights
+  const fixed = padTop + padBottom
+              + header.offsetHeight
+              + headings[0].offsetHeight + h0m
+              + headings[1].offsetHeight + h1m
+              + buttons.offsetHeight
+              + footer.offsetHeight;
+
+  // Available height for image
+  const available = Math.max(120, Math.floor(vh - fixed - 6)); // safety nudge
+
+  // Apply precise cap
+  img.style.maxHeight = available + 'px';
+}
+
+// Run on load & on viewport changes (rotation, keyboard, etc.)
+document.addEventListener('DOMContentLoaded', fitImageForPWA);
+window.addEventListener('resize', fitImageForPWA);
+window.addEventListener('orientationchange', fitImageForPWA);
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', fitImageForPWA);
+  window.visualViewport.addEventListener('scroll', fitImageForPWA);
 }
 </script>
 </body>
