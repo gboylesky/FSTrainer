@@ -17,18 +17,20 @@
 </script>
 
 <style>
+/* ---------- Base ---------- */
 html, body {
   margin: 0;
   padding: 0;
   height: 100%;
+  width: 100%;
+  max-width: 100%;
   overflow: hidden;
+  overflow-x: hidden;
   background-color: #1e1e1e;
   color: white;
   font-family: 'Segoe UI', sans-serif;
   text-align: center;
-  width: 100%;
-  max-width: 100%;
-  overflow-x: hidden;
+  -webkit-user-select: none;
 }
 
 /* ---------- Scaling wrapper ---------- */
@@ -37,7 +39,7 @@ html, body {
   width: 100%;
   height: 100%;
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;   /* No horizontal centering */
   align-items: flex-start;
 }
 
@@ -46,10 +48,14 @@ html, body {
   display: flex;
   flex-direction: column;
   height: auto;
-  max-width: 480px;
-  margin: 0 auto;
+  width: 100%;                  /* Always full width */
+  max-width: none;              /* Remove cap */
+  margin: 0;                    /* No centering margin */
   box-sizing: border-box;
-  padding: 0 10px env(safe-area-inset-bottom, 0);
+  padding: env(safe-area-inset-top, 0)
+           env(safe-area-inset-right, 0)
+           env(safe-area-inset-bottom, 0)
+           env(safe-area-inset-left, 0);
 }
 
 /* ---------- Title ---------- */
@@ -61,7 +67,6 @@ h1 {
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 100%;
-  display: block;
 }
 
 /* ---------- Slot banner ---------- */
@@ -90,6 +95,7 @@ h2 {
   font-weight: bold;
   margin: 8px 0 6px 0;
   text-align: left;
+  padding-left: 10px;
 }
 .progress-inline {
   font-size: clamp(20px, 4vw, 36px);
@@ -140,7 +146,7 @@ h2 {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 12px;
-  margin: 10px 0 20px 0;
+  margin: 10px 10px 20px 10px;
 }
 .buttons button {
   font-size: 24px;
@@ -159,7 +165,7 @@ h2 {
 
 /* ---------- Progress Bar ---------- */
 footer {
-  padding-bottom: calc(env(safe-area-inset-bottom, 0) + 8px);
+  padding: 0 10px calc(env(safe-area-inset-bottom, 0) + 8px);
 }
 .progress-bar-container {
   background-color: #333;
@@ -213,19 +219,6 @@ footer {
   cursor: pointer;
 }
 .close-x:hover { color: white; }
-
-/* ---------- Full-width on phones ---------- */
-@media (max-width: 600px) {
-  .app-scale-wrapper {
-    justify-content: flex-start;
-  }
-  .app-container {
-    width: 100%;
-    max-width: none;
-    margin: 0;
-    padding: 0 env(safe-area-inset-bottom, 0);
-  }
-}
 </style>
 </head>
 
