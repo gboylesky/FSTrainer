@@ -104,6 +104,15 @@ h2 {
 .image-wrapper img.fade-out { opacity: 0; }
 .image-wrapper img.fade-in { opacity: 1; }
 
+/* ✅ Applies only in PWA (standalone) mode */
+@media (display-mode: standalone) {
+  img#formation-image {
+    max-height: 55vh; /* adjust until the Progress bar is visible */
+    object-fit: contain;
+    margin-top: 0;
+  }
+}
+
 .overlay {
   position: absolute;
   top: 50%;
