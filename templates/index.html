@@ -26,6 +26,9 @@ html, body {
   color: white;
   font-family: 'Segoe UI', sans-serif;
   text-align: center;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 /* ---------- Scaling wrapper ---------- */
@@ -141,7 +144,7 @@ h2 {
 }
 .buttons button {
   font-size: 24px;
-  padding: 16px 8px; /* Taller, more thumb-friendly */
+  padding: 16px 8px;
   border-radius: 10px;
   background: #333;
   color: white;
@@ -211,14 +214,16 @@ footer {
 }
 .close-x:hover { color: white; }
 
-/* ---------- Fill full width on phones ---------- */
+/* ---------- Full-width on phones ---------- */
 @media (max-width: 600px) {
+  .app-scale-wrapper {
+    justify-content: flex-start;
+  }
   .app-container {
-    width: 100vw;
+    width: 100%;
     max-width: none;
     margin: 0;
-    padding-left: 0;
-    padding-right: 0;
+    padding: 0 env(safe-area-inset-bottom, 0);
   }
 }
 </style>
