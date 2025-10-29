@@ -140,9 +140,9 @@ h2 {
   margin: 10px 0 20px 0;
 }
 .buttons button {
-  font-size: 20px;
-  padding: 8px;
-  border-radius: 8px;
+  font-size: 24px;
+  padding: 16px 8px; /* Taller, more thumb-friendly */
+  border-radius: 10px;
   background: #333;
   color: white;
   border: 2px solid #555;
@@ -210,7 +210,6 @@ footer {
   cursor: pointer;
 }
 .close-x:hover { color: white; }
-
 </style>
 </head>
 
@@ -377,6 +376,20 @@ if (window.visualViewport) {
   window.visualViewport.addEventListener('resize', scaleAppToViewport);
   window.visualViewport.addEventListener('scroll', scaleAppToViewport);
 }
+
+/* ---------- DuckDuckGo / mobile viewport compensation ---------- */
+function adjustForDuckDuckGo() {
+  const ua = navigator.userAgent.toLowerCase();
+  if (ua.includes("duckduckgo") || ua.includes("firefox") || ua.includes("samsungbrowser")) {
+    const wrapper = document.querySelector(".app-scale-wrapper");
+    if (wrapper && wrapper.style.transform) {
+      const currentScale = parseFloat(wrapper.style.transform.replace(/[^0-9.]/g, "")) || 1;
+      wrapper.style.transform = `scale(${currentScale * 0.97})`;
+      wrapper.style.transformOrigin = "top center";
+    }
+  }
+}
+window.addEventListener("load", adjustForDuckDuckGo);
 </script>
 </body>
 </html>
