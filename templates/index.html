@@ -35,17 +35,16 @@ body {
 .app-container {
   display: flex;
   flex-direction: column;
-  min-height: 100svh;
+  height: 100svh;
   max-width: 480px;
   margin: 0 auto;
   box-sizing: border-box;
   padding: 0 10px env(safe-area-inset-bottom, 0); /* ✅ removed +12px */
 }
 
-header, main, footer {
-  margin: 0;
-  padding: 0;
-  flex-shrink: 0;
+main.content {
+  flex: 1 1 auto; /* allow it to shrink so footer stays visible */
+  overflow: hidden;
 }
 
 /* ---------- Title ---------- */
