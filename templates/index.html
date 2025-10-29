@@ -9,11 +9,11 @@
 <title>FS Randoms Trainer</title>
 
 <script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/service-worker.js')
-      .then(() => console.log("✅ Service worker registered"))
-      .catch(err => console.error("Service worker registration failed:", err));
-  }
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/service-worker.js')
+    .then(() => console.log("✅ Service worker registered"))
+    .catch(err => console.error("Service worker registration failed:", err));
+}
 </script>
 
 <style>
@@ -21,40 +21,38 @@ html, body {
   margin: 0;
   padding: 0;
   height: 100%;
-  overflow: hidden;
   background-color: #1e1e1e;
   color: white;
   font-family: 'Segoe UI', sans-serif;
   text-align: center;
-}
-
-/* ---------- Scaling wrapper ---------- */
-.app-scale-wrapper {
-  transform-origin: top center;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
+  overflow: hidden;
 }
 
 /* ---------- App Container ---------- */
 .app-container {
   display: flex;
   flex-direction: column;
-  height: auto;
-  max-width: 480px;               /* ✅ keep for browser mode */
+  justify-content: space-between;
+  min-height: 100svh;
+  max-width: 480px;          /* tidy on desktop/browser */
   margin: 0 auto;
   box-sizing: border-box;
   padding: 0 10px env(safe-area-inset-bottom, 0);
 }
 
-/* ✅ Fill full width in PWA mode only */
+/* ✅ Full viewport in standalone (PWA) mode */
 @media (display-mode: standalone) {
+  html, body {
+    height: 100%;
+    overflow: hidden;
+  }
   .app-container {
-    width: 100vw;                 /* full width on PWA */
-    max-width: none;              /* remove 480px cap */
-    margin: 0;                    /* remove auto-centering */
+    width: 100vw;
+    max-width: none;
+    height: 100dvh;          /* exact visible height */
+    margin: 0;
+    padding: 0 10px env(safe-area-inset-bottom, 0);
+    box-sizing: border-box;
   }
 }
 
@@ -104,10 +102,11 @@ h2 {
   margin-left: 6px;
 }
 
-/* ---------- Image and Overlay ---------- */
+/* ---------- Image ---------- */
 .image-wrapper {
   position: relative;
   width: 100%;
+  flex-grow: 1;           /* take up remaining vertical space */
   display: flex;
   justify-content: center;
   align-items: center;
@@ -115,9 +114,8 @@ h2 {
 .image-wrapper img {
   width: 100%;
   height: auto;
-  opacity: 1;
-  transition: opacity 0.3s ease-in-out;
   object-fit: contain;
+  transition: opacity 0.3s ease-in-out;
 }
 .image-wrapper img.fade-out { opacity: 0; }
 .image-wrapper img.fade-in { opacity: 1; }
@@ -133,7 +131,6 @@ h2 {
   text-shadow: 0 0 15px rgba(0,0,0,0.9);
   pointer-events: none;
   white-space: nowrap;
-  opacity: 1;
   animation: fadeout 0.8s ease-in forwards;
 }
 @keyframes fadeout {
@@ -163,7 +160,7 @@ h2 {
   transform: scale(0.97);
 }
 
-/* ---------- Progress Bar ---------- */
+/* ---------- Progress ---------- */
 footer {
   padding-bottom: calc(env(safe-area-inset-bottom, 0) + 8px);
 }
@@ -223,39 +220,37 @@ footer {
 </head>
 
 <body>
-<div class="app-scale-wrapper">
-  <div class="app-container">
-    <header>
-      <h1>FS Randoms Trainer</h1>
-      <div class="slot-banner">
-        <img src="{{ url_for('static', filename='slots.png') }}" alt="Slot Positions">
-      </div>
-    </header>
+<div class="app-container">
+  <header>
+    <h1>FS Randoms Trainer</h1>
+    <div class="slot-banner">
+      <img src="{{ url_for('static', filename='slots.png') }}" alt="Slot Positions">
+    </div>
+  </header>
 
-    <main class="content">
-      <h2>Formation</h2>
-      <div class="image-wrapper" id="image-area">
-        <img id="formation-image" src="data:image/png;base64,{{ img_data }}" alt="Formation">
-        {% if msg %}
-        <div id="overlay" class="overlay" style="color:{{ color }}">{{ msg }}</div>
-        {% endif %}
-      </div>
+  <main class="content">
+    <h2>Formation</h2>
+    <div class="image-wrapper" id="image-area">
+      <img id="formation-image" src="data:image/png;base64,{{ img_data }}" alt="Formation">
+      {% if msg %}
+      <div id="overlay" class="overlay" style="color:{{ color }}">{{ msg }}</div>
+      {% endif %}
+    </div>
 
-      <h2>Letter</h2>
-      <form class="buttons" id="GuessForm">
-        {% for label in labels %}
-        <button type="button" value="{{ label }}">{{ label }}</button>
-        {% endfor %}
-      </form>
-    </main>
+    <h2>Letter</h2>
+    <form class="buttons" id="GuessForm">
+      {% for label in labels %}
+      <button type="button" value="{{ label }}">{{ label }}</button>
+      {% endfor %}
+    </form>
+  </main>
 
-    <footer>
-      <h2>Progress <span class="progress-inline">({{ progress }} of {{ total }})</span></h2>
-      <div class="progress-bar-container">
-        <div class="progress-bar"></div>
-      </div>
-    </footer>
-  </div>
+  <footer>
+    <h2>Progress <span class="progress-inline">({{ progress }} of {{ total }})</span></h2>
+    <div class="progress-bar-container">
+      <div class="progress-bar"></div>
+    </div>
+  </footer>
 </div>
 
 <div class="modal" id="resultsModal">
@@ -270,6 +265,7 @@ footer {
 <script>
 let sequence = 0;
 
+/* ---------- Guess handling ---------- */
 document.addEventListener("DOMContentLoaded", () => {
   const ImgEl = document.getElementById("formation-image");
   const ProgressInline = document.querySelector(".progress-inline");
@@ -290,10 +286,7 @@ document.addEventListener("DOMContentLoaded", () => {
       .then(data => {
         if (currentSeq !== sequence) return;
         if (ProgressInline) ProgressInline.textContent = `(${data.progress} of ${data.total})`;
-        if (ProgressBar) {
-          const Percent = (data.progress / data.total) * 100;
-          ProgressBar.style.width = `${Percent}%`;
-        }
+        if (ProgressBar) ProgressBar.style.width = `${(data.progress / data.total) * 100}%`;
 
         if (data.done) {
           setTimeout(() => {
@@ -340,52 +333,22 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
+/* ---------- Reset ---------- */
 function closeResults() {
   const currentSeq = ++sequence;
-
   fetch("/Reset", { method: "POST" })
     .then(r => r.json())
     .then(data => {
       if (currentSeq !== sequence) return;
-
       const ImgEl = document.getElementById("formation-image");
       ImgEl.src = "data:image/png;base64," + data.img_data;
-      ImgEl.classList.add("fade-in");
-      setTimeout(() => ImgEl.classList.remove("fade-in"), 300);
-
       const ProgressInline = document.querySelector(".progress-inline");
       const ProgressBar = document.querySelector(".progress-bar");
       ProgressInline.textContent = `(${data.progress} of ${data.total})`;
       ProgressBar.style.width = `${(data.progress / data.total) * 100}%`;
-
       document.getElementById("resultsModal").style.display = "none";
     })
     .catch(err => console.error("Error resetting:", err));
-}
-
-/* ---------- Scale app to viewport ---------- */
-function scaleAppToViewport() {
-  const wrapper = document.querySelector('.app-scale-wrapper');
-  if (!wrapper) return;
-
-  const viewportHeight = window.visualViewport?.height || window.innerHeight;
-  const viewportWidth = window.visualViewport?.width || window.innerWidth;
-  const app = document.querySelector('.app-container');
-  const appHeight = app.scrollHeight;
-  const appWidth = app.scrollWidth;
-
-  const scale = Math.min(viewportHeight / appHeight, viewportWidth / appWidth, 1);
-  wrapper.style.transform = `scale(${scale})`;
-
-  const offsetY = (viewportHeight - appHeight * scale) / 2;
-  wrapper.style.marginTop = offsetY > 0 ? `${offsetY}px` : '0';
-}
-
-window.addEventListener('load', scaleAppToViewport);
-window.addEventListener('resize', scaleAppToViewport);
-if (window.visualViewport) {
-  window.visualViewport.addEventListener('resize', scaleAppToViewport);
-  window.visualViewport.addEventListener('scroll', scaleAppToViewport);
 }
 </script>
 </body>
