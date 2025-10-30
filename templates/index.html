@@ -114,13 +114,14 @@ main.content {
   position: relative;
   overflow: hidden;
   margin: 0;
-  max-height: 40vh;       /* ✅ limit image height to free space */
-  min-height: 120px;
+  width: 100%;
+  height: auto;          /* ✅ allow proportional height */
+  max-height: none;      /* ✅ remove cap */
 }
 .image-wrapper img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
+  width: 100%;           /* ✅ full phone width */
+  height: auto;          /* ✅ proportional scaling */
+  object-fit: contain;   /* ✅ no cropping */
   transition: opacity 0.3s ease-in-out;
 }
 .image-wrapper img.fade-out { opacity: 0; }
@@ -146,7 +147,7 @@ main.content {
 .buttons {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 6px;               /* ✅ smaller gaps */
+  gap: 6px;
   flex: 0 0 auto;
   padding: 0;
   width: calc(100% - 14px);
@@ -154,7 +155,7 @@ main.content {
   box-sizing: border-box;
 }
 .buttons button {
-  height: 42px;           /* ✅ smaller buttons */
+  height: 42px;
   font-size: 18px;
   border-radius: 6px;
   background: #333;
