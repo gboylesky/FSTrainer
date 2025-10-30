@@ -27,6 +27,11 @@ html, body {
   overflow: hidden;
 }
 
+body, .app-container, .app-scale-wrapper {
+  height: 100dvh;     /* uses dynamic viewport height (accounts for browser bars) */
+  overflow: hidden;   /* prevents vertical overflow */
+}
+
 /* -------- Layout wrappers -------- */
 .app-scale-wrapper {
   width: 100%;
@@ -199,6 +204,14 @@ footer {
   color:#aaa;font-weight:bold;cursor:pointer;
 }
 .close-x:hover{color:white;}
+
+/* Fix for PWA height overflow */
+@media all and (display-mode: standalone) {
+  html, body, .app-container, .app-scale-wrapper {
+    height: 100dvh;
+    overflow: hidden;
+  }
+}
 </style>
 </head>
 
