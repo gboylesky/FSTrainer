@@ -9,6 +9,12 @@
 <title>FS Randoms Trainer</title>
 
 <style>
+:root {
+  --gutter: 10px;
+  --space-top: 10px;
+  --space-bottom: 20px;   /* ⬅️ Global bottom spacing for all headings */
+}
+
 html, body {
   margin: 0;
   padding: 0;
@@ -21,7 +27,7 @@ html, body {
   overflow: hidden;
 }
 
-/* --------- Layout wrappers --------- */
+/* -------- Layout wrappers -------- */
 .app-scale-wrapper {
   width: 100%;
   height: 100%;
@@ -35,18 +41,24 @@ html, body {
   flex-direction: column;
   width: 100%;
   height: 100%;
-  margin: 0;
-  box-sizing: border-box;
-  padding: env(safe-area-inset-top,0) env(safe-area-inset-right,0)
-           env(safe-area-inset-bottom,0) env(safe-area-inset-left,0);
   max-width: 480px;
+  margin: 0 auto;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0);
+  padding-bottom: env(safe-area-inset-bottom, 0);
 }
 
-@media (min-width: 901px) {
-  .app-container { margin: 0 auto; }
+.row {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  width: 100%;
+  box-sizing: border-box;
+  padding-left: calc(var(--gutter) + env(safe-area-inset-left, 0));
+  padding-right: calc(var(--gutter) + env(safe-area-inset-right, 0));
 }
 
-/* --------- Header --------- */
+/* -------- Header -------- */
 h1 {
   font-size: clamp(24px, 5vw, 42px);
   margin: 16px 0 8px 0;
@@ -54,42 +66,39 @@ h1 {
 }
 
 .slot-banner {
-  width: 100%;
   height: 40px;
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-bottom: 10px;
 }
 .slot-banner img {
-  height: 100%;
+  max-height: 40px;
+  width: auto;
+  max-width: 100%;
   object-fit: contain;
 }
 
-/* --------- Main content --------- */
-main.content {
-  flex: 1 1 auto;              /* fills available height */
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  overflow: hidden;
-}
-
+/* -------- Headings -------- */
 h2 {
   font-size: clamp(22px, 4vw, 32px);
-  margin: 6px 10px;
+  margin: 0;
+  padding: 0;
+  line-height: 1;
   text-align: left;
+  display: block;
 }
+.section-top    { margin-top: var(--space-top); }
+.section-bottom { margin-bottom: var(--space-bottom); }
 
-/* --------- Image area --------- */
+/* -------- Image wrapper -------- */
 .image-wrapper {
-  flex: 1 1 auto;              /* grow to fill */
+  flex: 1 1 auto;
   display: flex;
   justify-content: center;
   align-items: center;
-  margin: 0 10px;
   position: relative;
   overflow: hidden;
+  margin: 0;
 }
 .image-wrapper img {
   width: 100%;
@@ -104,25 +113,33 @@ h2 {
   position: absolute;
   top: 50%; left: 50%;
   transform: translate(-50%,-50%);
-  font-size: clamp(40px, 8vw, 70px);
+  font-size: clamp(28px, 6vw, 50px);
   font-weight: bold;
   text-shadow: 0 0 15px rgba(0,0,0,0.9);
   pointer-events: none;
   animation: fadeout 0.8s ease-in forwards;
+  white-space: nowrap;        /* no wrapping */
+  display: inline-flex;       /* emoji + text stay together */
+  align-items: center;
+  gap: 6px;                   /* slight spacing between symbol and word */
 }
 @keyframes fadeout { 0%,80%{opacity:1;} 100%{opacity:0;} }
 
-/* --------- Buttons --------- */
+/* -------- Buttons -------- */
 .buttons {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-  padding: 10px;
-  flex: 0 0 auto;             /* fixed height region */
+  gap: 10px;
+  flex: 0 0 auto;
+  padding: 0;
+  width: calc(100% - 14px);
+  margin-left: 6px;
+  min-height: 260px;
+  box-sizing: border-box;
 }
 .buttons button {
-  font-size: 20px;
-  padding: 10px 6px;
+  height: 54px;
+  font-size: 22px;
   border-radius: 8px;
   background: #333;
   color: white;
@@ -132,18 +149,19 @@ h2 {
 .buttons button:hover { background:#444; }
 .buttons button:active { background:#555; transform:scale(0.97); }
 
-/* --------- Footer --------- */
+/* -------- Footer -------- */
 footer {
   flex: 0 0 auto;
-  padding: 0 10px calc(env(safe-area-inset-bottom,0) + 8px);
+  padding-bottom: calc(env(safe-area-inset-bottom,0) + 8px);
 }
 .progress-bar-container {
   background:#333;
   border-radius:10px;
   overflow:hidden;
   height:25px;
-  width:100%;
+  width:102%;
   margin-bottom:8px;
+  margin-left:-1%;     /* shifts left to align visually */
 }
 .progress-bar {
   height:100%;
@@ -156,7 +174,7 @@ footer {
   margin-left:6px;
 }
 
-/* --------- Modal --------- */
+/* -------- Modal -------- */
 .modal {
   display:{% if show_results %}flex{% else %}none{% endif %};
   position:fixed;
@@ -187,34 +205,46 @@ footer {
 <body>
 <div class="app-scale-wrapper">
   <div class="app-container">
-    <header>
+
+    <header class="row">
       <h1>FS Randoms Trainer</h1>
+    </header>
+
+    <div class="row">
       <div class="slot-banner">
         <img src="{{ url_for('static', filename='slots.png') }}" alt="Slot Positions">
       </div>
-    </header>
+    </div>
 
     <main class="content">
-      <h2>Formation</h2>
-      <div class="image-wrapper" id="image-area">
-        <img id="formation-image" src="data:image/png;base64,{{ img_data }}" alt="Formation">
-        {% if msg %}
-        <div id="overlay" class="overlay" style="color:{{ color }}">{{ msg }}</div>
-        {% endif %}
+      <div class="row">
+        <h2 class="section-top section-bottom">Formation</h2>
+        <div class="image-wrapper" id="image-area">
+          <img id="formation-image" src="data:image/png;base64,{{ img_data }}" alt="Formation">
+          {% if msg %}
+          <div id="overlay" class="overlay" style="color:{{ color }}">{{ msg }}</div>
+          {% endif %}
+        </div>
       </div>
 
-      <h2>Letter</h2>
-      <form class="buttons" id="GuessForm">
+      <div class="row">
+        <h2 class="section-top section-bottom">Letter</h2>
+      </div>
+
+      <form class="buttons row" id="GuessForm">
         {% for label in labels %}
         <button type="button" value="{{ label }}">{{ label }}</button>
         {% endfor %}
       </form>
     </main>
 
-    <footer>
-      <h2>Progress <span class="progress-inline">({{ progress }} of {{ total }})</span></h2>
+    <footer class="row">
+      <h2 class="section-top section-bottom">
+        Progress <span class="progress-inline">({{ progress }} of {{ total }})</span>
+      </h2>
       <div class="progress-bar-container"><div class="progress-bar"></div></div>
     </footer>
+
   </div>
 </div>
 
