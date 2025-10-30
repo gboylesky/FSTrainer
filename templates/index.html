@@ -355,6 +355,14 @@ function closeResults(){
     document.getElementById("resultsModal").style.display="none";
   }).catch(e=>console.error("Error:",e));
 }
+/* ---------- Auto scroll secreen up to hide address bar ---------- */
+window.addEventListener("load", () => {
+  // Wait a short moment for layout to stabilize
+  setTimeout(() => {
+    // Smoothly scroll to top so mobile browser hides address bar
+    window.scrollTo({ top: 1, behavior: "smooth" });
+  }, 100);
+});
 </script>
 </body>
 </html>
