@@ -146,13 +146,13 @@ main.content {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 10px;
-  flex: 1 1 auto;        /* ✅ allow the grid to shrink and grow within available space */
-  flex-shrink: 1;        /* ✅ make it responsive to small viewports */
+  flex: 1 1 auto;        /* allow the grid to shrink and grow within available space */
+  flex-shrink: 1;        /* make it responsive to small viewports */
   padding: 0;
   width: calc(100% - 14px);
   margin-left: 6px;
   box-sizing: border-box;
-  min-height: 0;         /* ✅ critical: prevents flex overflow pushing off screen */
+  min-height: 0;         /* critical: prevents flex overflow pushing off screen */
 }
 .buttons button {
   height: 54px;
@@ -224,6 +224,13 @@ footer {
     overflow: hidden;
   }
 }
+
+/* ===== TEMPORARY DEBUG OUTLINES ===== */
+.app-container   { outline: 3px solid lime; }
+main.content     { outline: 2px dashed yellow; }
+.image-wrapper   { outline: 2px solid cyan; }
+.buttons         { outline: 2px solid red; }
+footer           { outline: 2px solid orange; }
 </style>
 </head>
 
