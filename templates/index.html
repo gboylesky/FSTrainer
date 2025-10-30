@@ -221,11 +221,11 @@ footer {
 }
 .close-x:hover{color:white;}
 
-/* -------- PWA Height Fix -------- */
+/* PWA mode: no cropping */
 @media all and (display-mode: standalone) {
-  html, body, .app-container, .app-scale-wrapper {
-    height: 100dvh;
-    overflow: hidden;
+  .image-wrapper img {
+    object-fit: contain;         /* show full image */
+    object-position: center center; /* center normally */
   }
 }
 </style>
