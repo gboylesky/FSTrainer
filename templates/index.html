@@ -115,13 +115,13 @@ main.content {
   overflow: hidden;
   margin: 0;
   width: 100%;
-  height: auto;          /* ✅ allow proportional height */
-  max-height: none;      /* ✅ remove cap */
+  max-height: 45vh;     /* ✅ keeps image big but stops overflow */
+  min-height: 120px;
 }
 .image-wrapper img {
   width: 100%;           /* ✅ full phone width */
   height: auto;          /* ✅ proportional scaling */
-  object-fit: contain;   /* ✅ no cropping */
+  object-fit: cover;     
   transition: opacity 0.3s ease-in-out;
 }
 .image-wrapper img.fade-out { opacity: 0; }
