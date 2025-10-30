@@ -121,7 +121,8 @@ main.content {
 .image-wrapper img {
   width: 100%;           /* ✅ full phone width */
   height: auto;          /* ✅ proportional scaling */
-  object-fit: cover;     
+  object-fit: cover;
+  object-position: center -40px; /* crop top by 40px */     
   transition: opacity 0.3s ease-in-out;
 }
 .image-wrapper img.fade-out { opacity: 0; }
