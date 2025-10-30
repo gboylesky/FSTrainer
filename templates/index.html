@@ -12,7 +12,7 @@
 :root {
   --gutter: 10px;
   --space-top: 10px;
-  --space-bottom: 20px;   /* ⬅️ Global bottom spacing for all headings */
+  --space-bottom: 20px;
 }
 
 html, body {
@@ -27,9 +27,10 @@ html, body {
   overflow: hidden;
 }
 
+/* 🔧 Ensures full fit in browser and PWA */
 body, .app-container, .app-scale-wrapper {
-  height: 100dvh;     /* uses dynamic viewport height (accounts for browser bars) */
-  overflow: hidden;   /* prevents vertical overflow */
+  height: 100dvh;
+  overflow: hidden;
 }
 
 /* -------- Layout wrappers -------- */
@@ -95,6 +96,16 @@ h2 {
 .section-top    { margin-top: var(--space-top); }
 .section-bottom { margin-bottom: var(--space-bottom); }
 
+/* -------- Main content -------- */
+main.content {
+  min-height: 0;           /* ✅ lets flex shrink to fit viewport */
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+}
+
 /* -------- Image wrapper -------- */
 .image-wrapper {
   flex: 1 1 auto;
@@ -123,10 +134,10 @@ h2 {
   text-shadow: 0 0 15px rgba(0,0,0,0.9);
   pointer-events: none;
   animation: fadeout 0.8s ease-in forwards;
-  white-space: nowrap;        /* no wrapping */
-  display: inline-flex;       /* emoji + text stay together */
+  white-space: nowrap;
+  display: inline-flex;
   align-items: center;
-  gap: 6px;                   /* slight spacing between symbol and word */
+  gap: 6px;
 }
 @keyframes fadeout { 0%,80%{opacity:1;} 100%{opacity:0;} }
 
@@ -136,6 +147,7 @@ h2 {
   grid-template-columns: repeat(4, 1fr);
   gap: 10px;
   flex: 0 0 auto;
+  flex-shrink: 0;          /* ✅ prevents grid from forcing extra height */
   padding: 0;
   width: calc(100% - 14px);
   margin-left: 6px;
@@ -166,7 +178,7 @@ footer {
   height:25px;
   width:102%;
   margin-bottom:8px;
-  margin-left:-1%;     /* shifts left to align visually */
+  margin-left:-1%;
 }
 .progress-bar {
   height:100%;
@@ -205,7 +217,7 @@ footer {
 }
 .close-x:hover{color:white;}
 
-/* Fix for PWA height overflow */
+/* -------- PWA Height Fix -------- */
 @media all and (display-mode: standalone) {
   html, body, .app-container, .app-scale-wrapper {
     height: 100dvh;
