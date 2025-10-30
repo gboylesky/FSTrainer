@@ -11,8 +11,8 @@
 <style>
 :root {
   --gutter: 10px;
-  --space-top: 5px;
-  --space-bottom: 5px;
+  --space-top: 10px;
+  --space-bottom: 20px;
 }
 
 html, body {
@@ -27,7 +27,6 @@ html, body {
   overflow: hidden;
 }
 
-/* 🔧 Ensures full fit in browser and PWA */
 body, .app-container, .app-scale-wrapper {
   height: 100dvh;
   overflow: hidden;
@@ -98,7 +97,7 @@ h2 {
 
 /* -------- Main content -------- */
 main.content {
-  min-height: 0;           /* ✅ lets flex shrink to fit viewport */
+  min-height: 0;
   flex: 1 1 auto;
   display: flex;
   flex-direction: column;
@@ -115,8 +114,8 @@ main.content {
   position: relative;
   overflow: hidden;
   margin: 0;
-  max-height: 40vh;       /* limits image to 40% of viewport height */
-  min-height: 120px;      /* prevents it from collapsing completely */
+  max-height: 40vh;       /* ✅ limit image height to free space */
+  min-height: 120px;
 }
 .image-wrapper img {
   width: 100%;
@@ -147,23 +146,22 @@ main.content {
 .buttons {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
-  flex: 1 1 auto;        /* allow the grid to shrink and grow within available space */
-  flex-shrink: 1;        /* make it responsive to small viewports */
+  gap: 6px;               /* ✅ smaller gaps */
+  flex: 0 0 auto;
   padding: 0;
   width: calc(100% - 14px);
   margin-left: 6px;
   box-sizing: border-box;
-  min-height: 0;         /* critical: prevents flex overflow pushing off screen */
 }
 .buttons button {
-  height: clamp(44px, 6vh, 52px);   /* scales button height by viewport */
-  font-size: clamp(18px, 2.5vh, 22px); /* scales text slightly smaller */
-  border-radius: 8px;
+  height: 42px;           /* ✅ smaller buttons */
+  font-size: 18px;
+  border-radius: 6px;
   background: #333;
   color: white;
   border: 2px solid #555;
   cursor: pointer;
+  padding: 4px 0;
 }
 .buttons button:hover { background:#444; }
 .buttons button:active { background:#555; transform:scale(0.97); }
@@ -226,13 +224,6 @@ footer {
     overflow: hidden;
   }
 }
-
-/* ===== TEMPORARY DEBUG OUTLINES ===== */
-.app-container   { outline: 3px solid lime; }
-main.content     { outline: 2px dashed yellow; }
-.image-wrapper   { outline: 2px solid cyan; }
-.buttons         { outline: 2px solid red; }
-footer           { outline: 2px solid orange; }
 </style>
 </head>
 
