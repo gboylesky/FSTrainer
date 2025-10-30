@@ -11,8 +11,8 @@
 <style>
 :root {
   --gutter: 10px;
-  --space-top: 10px;
-  --space-bottom: 20px;
+  --space-top: 5px;
+  --space-bottom: 5px;
 }
 
 html, body {
@@ -115,6 +115,8 @@ main.content {
   position: relative;
   overflow: hidden;
   margin: 0;
+  max-height: 40vh;       /* limits image to 40% of viewport height */
+  min-height: 120px;      /* prevents it from collapsing completely */
 }
 .image-wrapper img {
   width: 100%;
