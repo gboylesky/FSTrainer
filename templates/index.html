@@ -146,13 +146,13 @@ main.content {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 10px;
-  flex: 0 0 auto;
-  flex-shrink: 0;          /* ✅ prevents grid from forcing extra height */
+  flex: 1 1 auto;        /* ✅ allow the grid to shrink and grow within available space */
+  flex-shrink: 1;        /* ✅ make it responsive to small viewports */
   padding: 0;
   width: calc(100% - 14px);
   margin-left: 6px;
-  min-height: 260px;
   box-sizing: border-box;
+  min-height: 0;         /* ✅ critical: prevents flex overflow pushing off screen */
 }
 .buttons button {
   height: 54px;
