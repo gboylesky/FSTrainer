@@ -150,6 +150,9 @@ main.content {
   border: 2px solid #555;
   cursor: pointer;
   padding: 4px 0;
+  white-space: normal;   /* ✅ allow wrapping for names */
+  line-height: 1.1;
+  word-break: keep-all;
 }
 .buttons button:hover { background:#444; }
 .buttons button:active { background:#555; transform:scale(0.97); }
@@ -221,11 +224,11 @@ footer {
 /* -------- Larger buttons on desktop -------- */
 @media screen and (min-width: 768px) {
   .buttons {
-    gap: 12px;          /* increased spacing between buttons */
+    gap: 12px;
   }
   .buttons button {
-    height: 82px;       /* bigger buttons */
-    font-size: 32px;    /* larger text */
+    height: 82px;
+    font-size: 32px;
   }
 }
 
@@ -242,24 +245,21 @@ footer {
   align-self: flex-start;
   margin-top: 4px;
   margin-bottom: 6px;
-  margin-left: -4px;   /* nudge left slightly */
+  margin-left: -4px;
 }
-
 .toggle-group label {
   flex: 1;
   padding: 6px 15px;
   cursor: pointer;
   font-weight: bold;
-  font-size: clamp(22px, 4vw, 32px);  /* ✅ same as h2 headings */
+  font-size: clamp(22px, 4vw, 32px);
   color: #ccc;
   background: #333;
   transition: background 0.2s, color 0.2s;
 }
-
 .toggle-group input[type="radio"] {
   display: none;
 }
-
 .toggle-group input[type="radio"]:checked + label {
   background: #4caf50;
   color: white;
@@ -293,7 +293,6 @@ footer {
       </div>
 
       <div class="row">
-        <!-- 🔁 Toggle replaces "Letter" heading -->
         <div class="toggle-group">
           <input type="radio" id="mode-letter" name="mode" value="Letter" checked>
           <label for="mode-letter">Letter</label>
@@ -330,11 +329,52 @@ footer {
 
 <script>
 let sequence=0;
+
+// ✅ Formation name mapping
+const NameMap = {
+  A: "Unipod",
+  B: "Stairstep Diamond",
+  C: "Murphy Flake",
+  D: "Yuan",
+  E: "Meeker",
+  F: "Open Accordion",
+  G: "Cataccord",
+  H: "Bow",
+  J: "Donut",
+  K: "Hook",
+  L: "Adder",
+  M: "Star",
+  N: "Crank",
+  O: "Satellite",
+  P: "Sidebody",
+  Q: "Phalanx"
+};
+
 document.addEventListener("DOMContentLoaded",()=>{
   const Img=document.getElementById("formation-image");
   const ProgInline=document.querySelector(".progress-inline");
   const ProgBar=document.querySelector(".progress-bar");
   const Buttons=document.querySelectorAll("#GuessForm button");
+  const modeLetter=document.getElementById("mode-letter");
+  const modeName=document.getElementById("mode-name");
+
+  // ✅ Toggle button labels between Letter and Name
+  function updateButtonLabels() {
+    if (modeName.checked) {
+      Buttons.forEach(btn => {
+        const name=NameMap[btn.value];
+        btn.textContent=name?name:btn.value;
+        btn.style.fontSize="24px";   // smaller font for wrapped text
+      });
+    } else {
+      Buttons.forEach(btn => {
+        btn.textContent=btn.value;
+        btn.style.fontSize="24px";
+      });
+    }
+  }
+  modeLetter.addEventListener("change",updateButtonLabels);
+  modeName.addEventListener("change",updateButtonLabels);
 
   Buttons.forEach(btn=>{
     btn.addEventListener("click",()=>{
