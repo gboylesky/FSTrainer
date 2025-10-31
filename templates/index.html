@@ -39,6 +39,7 @@ body, .app-container, .app-scale-wrapper {
   display: flex;
   justify-content: center;
   align-items: stretch;
+  transform-origin: top center;  /* ensures scaling pivots from top */
 }
 
 .app-container {
@@ -109,19 +110,19 @@ main.content {
 .image-wrapper {
   display: flex;
   justify-content: center;
-  align-items: flex-end;   /* lock image bottom to wrapper bottom */
+  align-items: flex-end;
   position: relative;
   overflow: hidden;
   margin: 0;
   width: 100%;
-  height: auto;            /* shrink-wrap to image height */
-  max-height: none;        /* remove artificial 40vh cap */
+  height: auto;
+  max-height: none;
 }
 .image-wrapper img {
   width: 100%;
-  height: auto;            /* maintain correct aspect ratio */
+  height: auto;
   object-fit: contain;
-  object-position: center bottom; /* keep bottom anchored */
+  object-position: center bottom;
   transition: opacity 0.3s ease-in-out;
 }
 .image-wrapper img.fade-out { opacity: 0; }
@@ -223,22 +224,6 @@ footer {
   html, body, .app-container, .app-scale-wrapper {
     height: 100dvh;
     overflow: hidden;
-  }
-}
-
-/* -------- Chrome on Android fit-fix -------- */
-@supports (-webkit-touch-callout: none) {
-  @media screen and (max-height: 700px) {
-    .app-scale-wrapper {
-      transform: scale(0.90);
-      transform-origin: top center;
-    }
-  }
-  @media screen and (max-height: 640px) {
-    .app-scale-wrapper {
-      transform: scale(0.85);
-      transform-origin: top center;
-    }
   }
 }
 </style>
@@ -371,6 +356,23 @@ function closeResults(){
     document.getElementById("resultsModal").style.display="none";
   }).catch(e=>console.error("Error:",e));
 }
+</script>
+
+<!-- -------- Universal Dynamic Scaling Fix -------- -->
+<script>
+(function(){
+  const wrapper = document.querySelector('.app-scale-wrapper');
+  if(!wrapper) return;
+  function adjustScale() {
+    const vh = window.innerHeight;      // actual visible height
+    const baseline = 800;               // your app’s designed “comfortable” height
+    const scale = Math.min(1, vh / baseline);
+    wrapper.style.transform = `scale(${scale})`;
+  }
+  window.addEventListener('resize', adjustScale);
+  window.addEventListener('orientationchange', adjustScale);
+  adjustScale();
+})();
 </script>
 </body>
 </html>
