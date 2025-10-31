@@ -358,8 +358,7 @@ function closeResults(){
 }
 </script>
 
-<!-- -------- Universal Dynamic Scaling Fix -------- -->
-<!-- -------- Universal Dynamic Scaling Fix (Centered, No Gaps) -------- -->
+<!-- -------- Universal Dynamic Scaling Fix (Anchored, No Drift) -------- -->
 <script>
 (function(){
   const wrapper = document.querySelector('.app-scale-wrapper');
@@ -367,22 +366,14 @@ function closeResults(){
 
   function adjustScale() {
     const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-    const vw = window.visualViewport ? window.visualViewport.width  : window.innerWidth;
-    const baselineH = 800;  // your designed “comfortable” height
-    const scale = Math.min(1, vh / baselineH);
+    const baseline = 800;   // designed comfortable height
+    const scale = Math.min(1, vh / baseline);
 
-    // Apply scaling and recentre the wrapper to remove side/bottom gaps
-    wrapper.style.transform = `scale(${scale})`;
-    wrapper.style.transformOrigin = 'top center';
-
-    // compute offset to re-center horizontally and vertically
-    const extraH = vh - (vh * scale);
-    const extraW = vw - (vw * scale);
     wrapper.style.position = 'absolute';
-    wrapper.style.top = `${extraH/2}px`;
-    wrapper.style.left = `${extraW/2}px`;
-    wrapper.style.right = '0';
-    wrapper.style.bottom = '0';
+    wrapper.style.top = '0';
+    wrapper.style.left = '50%';
+    wrapper.style.transform = `translateX(-50%) scale(${scale})`;
+    wrapper.style.transformOrigin = 'top center';
   }
 
   window.addEventListener('resize', adjustScale);
