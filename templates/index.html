@@ -131,6 +131,7 @@ main.content {
 }
 @keyframes fadeout { 0%,80%{opacity:1;} 100%{opacity:0;} }
 
+/* -------- Base font: mobile browser (default) -------- */
 .buttons {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -143,19 +144,45 @@ main.content {
 }
 .buttons button {
   height: 36px;
-  font-size: 16px;
+  font-size: 16px;   /* ✅ browser font size */
   border-radius: 6px;
   background: #333;
   color: white;
   border: 2px solid #555;
   cursor: pointer;
   padding: 4px 0;
-  white-space: normal;   /* ✅ allow wrapping for names */
+  white-space: normal;
   line-height: 1.1;
   word-break: keep-all;
 }
 .buttons button:hover { background:#444; }
 .buttons button:active { background:#555; transform:scale(0.97); }
+
+/* -------- PWA mode font size -------- */
+@media all and (display-mode: standalone) {
+  .buttons button {
+    height: 46px;
+    font-size: 18px;   /* ✅ PWA font size */
+  }
+}
+
+/* -------- Desktop full-height fix -------- */
+@media screen and (min-width: 768px) {
+  html, body, .app-container, .app-scale-wrapper {
+    height: 100vh;
+  }
+}
+
+/* -------- Larger buttons and font on desktop -------- */
+@media screen and (min-width: 768px) {
+  .buttons {
+    gap: 12px;
+  }
+  .buttons button {
+    height: 82px;
+    font-size: 24px;   /* ✅ desktop font size */
+  }
+}
 
 footer {
   flex: 0 0 auto;
@@ -205,32 +232,6 @@ footer {
   color:#aaa;font-weight:bold;cursor:pointer;
 }
 .close-x:hover{color:white;}
-
-/* -------- Bigger buttons only in PWA mode -------- */
-@media all and (display-mode: standalone) {
-  .buttons button {
-    height: 46px;
-    font-size: 18px;
-  }
-}
-
-/* -------- Desktop full-height fix -------- */
-@media screen and (min-width: 768px) {
-  html, body, .app-container, .app-scale-wrapper {
-    height: 100vh;
-  }
-}
-
-/* -------- Larger buttons on desktop -------- */
-@media screen and (min-width: 768px) {
-  .buttons {
-    gap: 12px;
-  }
-  .buttons button {
-    height: 82px;
-    font-size: 32px;
-  }
-}
 
 /* -------- Toggle styling (left-aligned + bold + heading size) -------- */
 .toggle-group {
@@ -330,24 +331,11 @@ footer {
 <script>
 let sequence=0;
 
-// ✅ Formation name mapping
 const NameMap = {
-  A: "Unipod",
-  B: "Stairstep Diamond",
-  C: "Murphy Flake",
-  D: "Yuan",
-  E: "Meeker",
-  F: "Open Accordion",
-  G: "Cataccord",
-  H: "Bow",
-  J: "Donut",
-  K: "Hook",
-  L: "Adder",
-  M: "Star",
-  N: "Crank",
-  O: "Satellite",
-  P: "Sidebody",
-  Q: "Phalanx"
+  A: "Unipod", B: "Stair Diam", C: "Mrphy Flak", D: "Yuan",
+  E: "Meeker", F: "Open Accord", G: "Cataccord", H: "Bow",
+  J: "Donut", K: "Hook", L: "Adder", M: "Star",
+  N: "Crank", O: "Satellite", P: "Sidebody", Q: "Phalanx"
 };
 
 document.addEventListener("DOMContentLoaded",()=>{
@@ -358,21 +346,19 @@ document.addEventListener("DOMContentLoaded",()=>{
   const modeLetter=document.getElementById("mode-letter");
   const modeName=document.getElementById("mode-name");
 
-  // ✅ Toggle button labels between Letter and Name
-  function updateButtonLabels() {
-    if (modeName.checked) {
-      Buttons.forEach(btn => {
+  function updateButtonLabels(){
+    if(modeName.checked){
+      Buttons.forEach(btn=>{
         const name=NameMap[btn.value];
         btn.textContent=name?name:btn.value;
-        btn.style.fontSize="24px";   // smaller font for wrapped text
       });
     } else {
-      Buttons.forEach(btn => {
+      Buttons.forEach(btn=>{
         btn.textContent=btn.value;
-        btn.style.fontSize="24px";
       });
     }
   }
+
   modeLetter.addEventListener("change",updateButtonLabels);
   modeName.addEventListener("change",updateButtonLabels);
 
