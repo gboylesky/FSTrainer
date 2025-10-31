@@ -218,17 +218,17 @@ footer {
   }
 }
 
-/* -------- Toggle styling -------- */
+/* -------- Toggle styling (left-aligned + bold) -------- */
 .toggle-group {
   display: inline-flex;
-  justify-content: center;
+  justify-content: flex-start;       /* left align */
   align-items: center;
   background: #333;
   border: 2px solid #555;
   border-radius: 6px;
   overflow: hidden;
   width: fit-content;
-  align-self: center;
+  align-self: flex-start;            /* stick to left edge */
   margin-top: 4px;
   margin-bottom: 6px;
 }
@@ -236,6 +236,7 @@ footer {
   flex: 1;
   padding: 6px 16px;
   cursor: pointer;
+  font-weight: bold;                 /* make text bold */
   font-size: clamp(18px, 4vw, 22px);
   color: #ccc;
   background: #333;
