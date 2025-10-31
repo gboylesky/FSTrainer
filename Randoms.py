@@ -8,12 +8,23 @@ app = Flask(__name__)
 # ---------------------------
 # Configuration
 # ---------------------------
-ImageFolder = os.path.join(app.static_folder, "Randoms", "Letter")
+BaseRandomsFolder = os.path.join(app.static_folder, "Randoms")
+LetterFolder = os.path.join(BaseRandomsFolder, "Letter")
+NameFolder = os.path.join(BaseRandomsFolder, "Name")
 
 Labels = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
           'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q']
 
+# Mapping for formation names
+NameMap = {
+    'A': 'Unipod', 'B': 'Stairstep Diamond', 'C': 'Murphy Flake', 'D': 'Yuan',
+    'E': 'Meeker', 'F': 'Open Accordion', 'G': 'Cataccord', 'H': 'Bow',
+    'J': 'Donut', 'K': 'Hook', 'L': 'Adder', 'M': 'Star',
+    'N': 'Crank', 'O': 'Satellite', 'P': 'Sidebody', 'Q': 'Phalanx'
+}
+
 State = {
+    "Mode": "Letter",           # New: active mode
     "Remaining": Labels.copy(),
     "Current": None,
     "Correct": 0,
@@ -22,11 +33,14 @@ State = {
     "AttemptedWrong": False
 }
 
+
 # ---------------------------
 # Helpers
 # ---------------------------
 def GetImageBase64(Label):
-    path = os.path.join(ImageFolder, f"{Label}.png")
+    """Return image base64 string from the folder based on current mode."""
+    folder = LetterFolder if State["Mode"] == "Letter" else NameFolder
+    path = os.path.join(folder, f"{Label}.png")
     if not os.path.exists(path):
         print(f"⚠️ Missing: {path}")
         return ""
@@ -73,6 +87,16 @@ def Home():
     )
 
 
+@app.route("/SetMode", methods=["POST"])
+def SetMode():
+    """Switch between Letter and Name modes."""
+    mode = request.form.get("mode", "Letter")
+    if mode in ["Letter", "Name"]:
+        State["Mode"] = mode
+        print(f"🔁 Mode switched to: {mode}")
+    return jsonify(success=True)
+
+
 @app.route("/Guess", methods=["POST"])
 def Guess():
     guess_label = request.form.get("guess")
@@ -82,8 +106,13 @@ def Guess():
     if not State["Current"]:
         SetFirstImage()
 
+    # Determine expected answer based on current mode
+    correct_answer = (
+        State["Current"] if State["Mode"] == "Letter" else NameMap[State["Current"]]
+    )
+
     # ---------------- Correct Guess ----------------
-    if guess_label == State["Current"]:
+    if guess_label == correct_answer:
         msg = "✅ Correct"
         color = "lime"
 
