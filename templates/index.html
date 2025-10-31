@@ -109,19 +109,19 @@ main.content {
 .image-wrapper {
   display: flex;
   justify-content: center;
-  align-items: flex-end;   /* ✅ lock image bottom to wrapper bottom */
+  align-items: flex-end;   /* lock image bottom to wrapper bottom */
   position: relative;
   overflow: hidden;
   margin: 0;
   width: 100%;
-  height: auto;            /* ✅ shrink-wrap to image height */
-  max-height: none;        /* ✅ remove artificial 40vh cap */
+  height: auto;            /* shrink-wrap to image height */
+  max-height: none;        /* remove artificial 40vh cap */
 }
 .image-wrapper img {
   width: 100%;
-  height: auto;            /* ✅ maintain correct aspect ratio */
+  height: auto;            /* maintain correct aspect ratio */
   object-fit: contain;
-  object-position: center bottom; /* ✅ keep bottom anchored */
+  object-position: center bottom; /* keep bottom anchored */
   transition: opacity 0.3s ease-in-out;
 }
 .image-wrapper img.fade-out { opacity: 0; }
@@ -223,6 +223,22 @@ footer {
   html, body, .app-container, .app-scale-wrapper {
     height: 100dvh;
     overflow: hidden;
+  }
+}
+
+/* -------- Chrome on Android fit-fix -------- */
+@supports (-webkit-touch-callout: none) {
+  @media screen and (max-height: 700px) {
+    .app-scale-wrapper {
+      transform: scale(0.95);
+      transform-origin: top center;
+    }
+  }
+  @media screen and (max-height: 640px) {
+    .app-scale-wrapper {
+      transform: scale(0.90);
+      transform-origin: top center;
+    }
   }
 }
 </style>
