@@ -17,11 +17,19 @@ Labels = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
 
 # Mapping for formation names
 NameMap = {
-    'A': 'Unipod', 'B': 'Stairstep Diamond', 'C': 'Murphy Flake', 'D': 'Yuan',
-    'E': 'Meeker', 'F': 'Open Accordion', 'G': 'Cataccord', 'H': 'Bow',
+    'A': 'Unipod', 'B': 'Stair Diam', 'C': 'Mrphy Flak', 'D': 'Yuan',
+    'E': 'Meeker', 'F': 'Open Accor', 'G': 'Cataccord', 'H': 'Bow',
     'J': 'Donut', 'K': 'Hook', 'L': 'Adder', 'M': 'Star',
     'N': 'Crank', 'O': 'Satellite', 'P': 'Sidebody', 'Q': 'Phalanx'
 }
+
+# ---------- Added: Reverse lookup + cleaner comparison ----------
+def _canon(s: str) -> str:
+    """Lowercase + trim whitespace for robust matching."""
+    return " ".join(s.strip().split()).lower()
+
+ReverseNameMap = { _canon(v): k for k, v in NameMap.items() }
+# ---------------------------------------------------------------
 
 State = {
     "Mode": "Letter",           # New: active mode
@@ -108,22 +116,28 @@ def Guess():
     if not State["Current"]:
         SetFirstImage()
 
-    # Determine expected answer based on current mode
-    correct_answer = (
-        State["Current"] if State["Mode"] == "Letter" else NameMap[State["Current"]]
-    )
+    # Convert guess -> actual letter we’re showing
+    if State["Mode"] == "Letter":
+        guessed_letter = guess_label
+    else:
+        canon_guess = _canon(guess_label)
+        guessed_letter = ReverseNameMap.get(canon_guess)
+        if guessed_letter is None:
+            # try prefix-based fallback (handles abbreviations)
+            for key_name, letter in ReverseNameMap.items():
+                if key_name.startswith(canon_guess) or canon_guess.startswith(key_name):
+                    guessed_letter = letter
+                    break
 
     # ---------------- Correct Guess ----------------
-    if guess_label == correct_answer:
+    if guessed_letter == State["Current"]:
         msg = "✅ Correct"
         color = "lime"
 
-        # Only increment Correct and Progress once per formation
         if not State["AttemptedWrong"]:
             State["Correct"] += 1
         State["Progress"] += 1
 
-        # Check if finished all
         if len(State["Remaining"]) == 1:
             State["Remaining"].remove(State["Current"])
             done_progress = State["Progress"]
