@@ -23,16 +23,15 @@ html, body {
   color: white;
   font-family: 'Segoe UI', sans-serif;
   text-align: center;
-  overflow-y: auto;     /* ✅ allow vertical scroll */
+  overflow-y: auto;
   overflow-x: hidden;
 }
 
 body, .app-container, .app-scale-wrapper {
   width: 100%;
-  height: auto;          /* ✅ auto height instead of 100dvh */
+  height: auto;
 }
 
-/* -------- Layout wrappers -------- */
 .app-scale-wrapper {
   display: flex;
   justify-content: center;
@@ -60,7 +59,6 @@ body, .app-container, .app-scale-wrapper {
   padding-right: calc(var(--gutter) + env(safe-area-inset-right, 0));
 }
 
-/* -------- Header -------- */
 h1 {
   font-size: clamp(24px, 5vw, 42px);
   margin: 6px 0 4px 0;
@@ -80,7 +78,6 @@ h1 {
   object-fit: contain;
 }
 
-/* -------- Headings -------- */
 h2 {
   font-size: clamp(22px, 4vw, 32px);
   margin: 0;
@@ -92,7 +89,6 @@ h2 {
 .section-top    { margin-top: var(--space-top); }
 .section-bottom { margin-bottom: var(--space-bottom); }
 
-/* -------- Main content -------- */
 main.content {
   flex: 1 1 auto;
   display: flex;
@@ -100,7 +96,6 @@ main.content {
   justify-content: space-between;
 }
 
-/* -------- Image wrapper -------- */
 .image-wrapper {
   display: flex;
   justify-content: center;
@@ -136,7 +131,6 @@ main.content {
 }
 @keyframes fadeout { 0%,80%{opacity:1;} 100%{opacity:0;} }
 
-/* -------- Buttons -------- */
 .buttons {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -148,8 +142,8 @@ main.content {
   box-sizing: border-box;
 }
 .buttons button {
-  height: 36px;       /* base height */
-  font-size: 16px;    /* base font size */
+  height: 36px;
+  font-size: 16px;
   border-radius: 6px;
   background: #333;
   color: white;
@@ -160,7 +154,6 @@ main.content {
 .buttons button:hover { background:#444; }
 .buttons button:active { background:#555; transform:scale(0.97); }
 
-/* -------- Footer -------- */
 footer {
   flex: 0 0 auto;
   padding-bottom: calc(env(safe-area-inset-bottom,0) + 8px);
@@ -185,7 +178,6 @@ footer {
   margin-left:6px;
 }
 
-/* -------- Modal -------- */
 .modal {
   display:{% if show_results %}flex{% else %}none{% endif %};
   position:fixed;
@@ -214,9 +206,40 @@ footer {
 /* -------- Bigger buttons only in PWA mode -------- */
 @media all and (display-mode: standalone) {
   .buttons button {
-    height: 46px;      /* larger buttons in PWA */
-    font-size: 18px;   /* larger text in PWA */
+    height: 46px;
+    font-size: 18px;
   }
+}
+
+/* -------- Toggle styling -------- */
+.toggle-group {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  background: #333;
+  border: 2px solid #555;
+  border-radius: 6px;
+  overflow: hidden;
+  width: fit-content;
+  align-self: center;
+  margin-top: 4px;
+  margin-bottom: 6px;
+}
+.toggle-group label {
+  flex: 1;
+  padding: 6px 16px;
+  cursor: pointer;
+  font-size: clamp(18px, 4vw, 22px);
+  color: #ccc;
+  background: #333;
+  transition: background 0.2s, color 0.2s;
+}
+.toggle-group input[type="radio"] {
+  display: none;
+}
+.toggle-group input[type="radio"]:checked + label {
+  background: #4caf50;
+  color: white;
 }
 </style>
 </head>
@@ -247,7 +270,13 @@ footer {
       </div>
 
       <div class="row">
-        <h2 class="section-top section-bottom">Letter</h2>
+        <!-- 🔁 Toggle replaces "Letter" heading -->
+        <div class="toggle-group">
+          <input type="radio" id="mode-letter" name="mode" value="Letter" checked>
+          <label for="mode-letter">Letter</label>
+          <input type="radio" id="mode-name" name="mode" value="Name">
+          <label for="mode-name">Name</label>
+        </div>
       </div>
 
       <form class="buttons row" id="GuessForm">
@@ -344,7 +373,7 @@ function closeResults(){
     const ProgInline=document.querySelector(".progress-inline");
     const ProgBar=document.querySelector(".progress-bar");
     ProgInline.textContent=`(${data.progress} of ${data.total})`;
-    ProgBar.style.width=`${(data.progress/data.total)*100}%`;  /* ✅ fixed syntax */
+    ProgBar.style.width=`${(data.progress/data.total)*100}%`;
     document.getElementById("resultsModal").style.display="none";
   }).catch(e=>console.error("Error:",e));
 }
