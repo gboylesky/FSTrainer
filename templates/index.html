@@ -297,6 +297,27 @@ footer {
   background: #4caf50;
   color: white;
 }
+
+/* --- FINAL FIX: Force Randoms/Blocks toggle to match Letter/Name --- */
+.toggle-group.category-toggle label {
+  height: 36px !important; /* default browser */
+}
+
+/* PWA mode */
+@media all and (display-mode: standalone) {
+  .toggle-group.category-toggle label {
+    height: 46px !important;
+    font-size: 18px !important;
+  }
+}
+
+/* Desktop mode */
+@media screen and (min-width: 768px) {
+  .toggle-group.category-toggle label {
+    height: 42px !important;
+    font-size: 30px !important;
+  }
+}
 </style>
 </head>
 
