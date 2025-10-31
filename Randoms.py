@@ -28,11 +28,12 @@ def _canon(s: str) -> str:
     """Lowercase + trim whitespace for robust matching."""
     return " ".join(s.strip().split()).lower()
 
-ReverseNameMap = { _canon(v): k for k, v in NameMap.items() }
+ReverseNameMap = {_canon(v): k for k, v in NameMap.items()}
 # ---------------------------------------------------------------
 
 State = {
-    "Mode": "Letter",           # New: active mode
+    "Mode": "Letter",           # Current mode (Letter/Name)
+    "Category": "Randoms",      # ✅ New: active category (Randoms/Blocks)
     "Remaining": Labels.copy(),
     "Current": None,
     "Correct": 0,
@@ -102,9 +103,19 @@ def SetMode():
     if mode in ["Letter", "Name"]:
         State["Mode"] = mode
         print(f"🔁 Mode switched to: {mode}")
-    # Return current image (same letter) but from the selected folder
     img_data = GetImageBase64(State["Current"]) if State["Current"] else ""
     return jsonify(success=True, mode=State["Mode"], img_data=img_data)
+
+
+# ✅ NEW: Category route
+@app.route("/SetCategory", methods=["POST"])
+def SetCategory():
+    """Switch between Randoms and Blocks categories."""
+    category = request.form.get("category", "Randoms")
+    if category in ["Randoms", "Blocks"]:
+        State["Category"] = category
+        print(f"📁 Category switched to: {category}")
+    return jsonify(success=True, category=State["Category"])
 
 
 @app.route("/Guess", methods=["POST"])
@@ -116,20 +127,17 @@ def Guess():
     if not State["Current"]:
         SetFirstImage()
 
-    # Convert guess -> actual letter we’re showing
     if State["Mode"] == "Letter":
         guessed_letter = guess_label
     else:
         canon_guess = _canon(guess_label)
         guessed_letter = ReverseNameMap.get(canon_guess)
         if guessed_letter is None:
-            # try prefix-based fallback (handles abbreviations)
             for key_name, letter in ReverseNameMap.items():
                 if key_name.startswith(canon_guess) or canon_guess.startswith(key_name):
                     guessed_letter = letter
                     break
 
-    # ---------------- Correct Guess ----------------
     if guessed_letter == State["Current"]:
         msg = "✅ Correct"
         color = "lime"
@@ -151,7 +159,6 @@ def Guess():
 
         NextImage()
 
-    # ---------------- Incorrect Guess ----------------
     else:
         msg = "❌ Try Again"
         color = "red"

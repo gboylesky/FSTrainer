@@ -78,16 +78,26 @@ h1 {
   object-fit: contain;
 }
 
-h2 {
-  font-size: clamp(22px, 4vw, 32px);
-  margin: 0;
-  padding: 0;
-  line-height: 1;
-  text-align: left;
-  display: block;
+/* -------- Category toggle (Randoms / Blocks) -------- */
+.category-toggle {
+  margin-top: 8px;
+  margin-bottom: 8px;
+  width: 100%;
+  justify-content: center;
 }
-.section-top    { margin-top: var(--space-top); }
-.section-bottom { margin-bottom: var(--space-bottom); }
+.category-toggle label {
+  font-size: clamp(22px, 4vw, 32px);
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+}
+@media all and (display-mode: standalone) and (max-width: 767px) {
+  .category-toggle label {
+    height: 46px;
+  }
+}
 
 main.content {
   flex: 1 1 auto;
@@ -133,8 +143,8 @@ main.content {
 
 @media screen and (max-width: 767px) {
   .overlay {
-    font-size: clamp(42px, 10vw, 80px);  /* noticeably bigger range */
-    text-shadow: 0 0 25px rgba(0,0,0,1); /* stronger glow for visibility */
+    font-size: clamp(42px, 10vw, 80px);
+    text-shadow: 0 0 25px rgba(0,0,0,1);
   }
 }
 
@@ -292,7 +302,14 @@ footer {
 
     <main class="content">
       <div class="row">
-        <h2 class="section-top section-bottom">Formation</h2>
+        <!-- ✅ Category toggle replaces "Formation" -->
+        <div class="toggle-group category-toggle section-top section-bottom">
+          <input type="radio" id="cat-randoms" name="category" value="Randoms" checked>
+          <label for="cat-randoms">Randoms</label>
+          <input type="radio" id="cat-blocks" name="category" value="Blocks">
+          <label for="cat-blocks">Blocks</label>
+        </div>
+
         <div class="image-wrapper" id="image-area">
           <img id="formation-image" src="data:image/png;base64,{{ img_data }}" alt="Formation">
           {% if msg %}
@@ -353,6 +370,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const Buttons = document.querySelectorAll("#GuessForm button");
   const modeLetter = document.getElementById("mode-letter");
   const modeName = document.getElementById("mode-name");
+  const appTitle = document.querySelector("h1");
+  const catRandoms = document.getElementById("cat-randoms");
+  const catBlocks = document.getElementById("cat-blocks");
 
   // each button's dataset initially equals its letter
   Buttons.forEach(btn => { btn.dataset.guess = btn.value; });
@@ -372,7 +392,25 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Toggle events: update mode on server + update image
+  // Category toggle → update title and server
+  function updateAppTitle() {
+    if (catBlocks.checked) {
+      appTitle.textContent = "FS Blocks Trainer";
+    } else {
+      appTitle.textContent = "FS Randoms Trainer";
+    }
+  }
+
+  catRandoms.addEventListener("change", () => {
+    updateAppTitle();
+    fetch("/SetCategory", { method: "POST", body: new URLSearchParams({ category: "Randoms" }) });
+  });
+  catBlocks.addEventListener("change", () => {
+    updateAppTitle();
+    fetch("/SetCategory", { method: "POST", body: new URLSearchParams({ category: "Blocks" }) });
+  });
+
+  // Mode toggle → update label set + server
   modeLetter.addEventListener("change", () => {
     updateButtonLabels();
     fetch("/SetMode", { method: "POST", body: new URLSearchParams({ mode: "Letter" }) })
@@ -389,6 +427,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
+  // Guess handling
   Buttons.forEach(btn => {
     btn.addEventListener("click", () => {
       const Guess = btn.dataset.guess;
