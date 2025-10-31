@@ -18,35 +18,31 @@
 html, body {
   margin: 0;
   padding: 0;
-  height: 100%;
   width: 100%;
   background-color: #1e1e1e;
   color: white;
   font-family: 'Segoe UI', sans-serif;
   text-align: center;
-  overflow: hidden;
+  overflow-y: auto;     /* ✅ allow vertical scroll */
+  overflow-x: hidden;
 }
 
 body, .app-container, .app-scale-wrapper {
-  height: 100dvh;
-  overflow: hidden;
+  width: 100%;
+  height: auto;          /* ✅ auto height instead of 100dvh */
 }
 
 /* -------- Layout wrappers -------- */
 .app-scale-wrapper {
-  width: 100%;
-  height: 100%;
   display: flex;
   justify-content: center;
   align-items: stretch;
-  transform-origin: top center;  /* ensures scaling pivots from top */
 }
 
 .app-container {
   display: flex;
   flex-direction: column;
   width: 100%;
-  height: 100%;
   max-width: 480px;
   margin: 0 auto;
   box-sizing: border-box;
@@ -98,12 +94,10 @@ h2 {
 
 /* -------- Main content -------- */
 main.content {
-  min-height: 0;
   flex: 1 1 auto;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  overflow: hidden;
 }
 
 /* -------- Image wrapper -------- */
@@ -115,8 +109,6 @@ main.content {
   overflow: hidden;
   margin: 0;
   width: 100%;
-  height: auto;
-  max-height: none;
 }
 .image-wrapper img {
   width: 100%;
@@ -218,14 +210,6 @@ footer {
   color:#aaa;font-weight:bold;cursor:pointer;
 }
 .close-x:hover{color:white;}
-
-/* -------- PWA Height Fix -------- */
-@media all and (display-mode: standalone) {
-  html, body, .app-container, .app-scale-wrapper {
-    height: 100dvh;
-    overflow: hidden;
-  }
-}
 </style>
 </head>
 
@@ -352,34 +336,10 @@ function closeResults(){
     const ProgInline=document.querySelector(".progress-inline");
     const ProgBar=document.querySelector(".progress-bar");
     ProgInline.textContent=`(${data.progress} of ${data.total})`;
-    ProgBar.style.width=`${(data.progress/data.total)*100}%`;
+    ProgBar.style.width=`${(data.progress/data.total)*100)%`;
     document.getElementById("resultsModal").style.display="none";
   }).catch(e=>console.error("Error:",e));
 }
-</script>
-
-<!-- -------- Universal Dynamic Scaling Fix (Anchored, No Drift) -------- -->
-<script>
-(function(){
-  const wrapper = document.querySelector('.app-scale-wrapper');
-  if(!wrapper) return;
-
-  function adjustScale() {
-    const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-    const baseline = 800;   // designed comfortable height
-    const scale = Math.min(1, vh / baseline);
-
-    wrapper.style.position = 'absolute';
-    wrapper.style.top = '0';
-    wrapper.style.left = '50%';
-    wrapper.style.transform = `translateX(-50%) scale(${scale})`;
-    wrapper.style.transformOrigin = 'top center';
-  }
-
-  window.addEventListener('resize', adjustScale);
-  window.addEventListener('orientationchange', adjustScale);
-  adjustScale();
-})();
 </script>
 </body>
 </html>
