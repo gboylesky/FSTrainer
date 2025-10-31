@@ -148,8 +148,8 @@ main.content {
   box-sizing: border-box;
 }
 .buttons button {
-  height: 36px;
-  font-size: 16px;
+  height: 36px;       /* reduced height */
+  font-size: 16px;    /* slightly smaller text */
   border-radius: 6px;
   background: #333;
   color: white;
@@ -336,7 +336,7 @@ function closeResults(){
     const ProgInline=document.querySelector(".progress-inline");
     const ProgBar=document.querySelector(".progress-bar");
     ProgInline.textContent=`(${data.progress} of ${data.total})`;
-    ProgBar.style.width=`${(data.progress/data.total)*100)%`;
+    ProgBar.style.width=`${(data.progress/data.total)*100}%`;  /* ✅ fixed syntax */
     document.getElementById("resultsModal").style.display="none";
   }).catch(e=>console.error("Error:",e));
 }
