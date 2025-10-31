@@ -89,12 +89,14 @@ def Home():
 
 @app.route("/SetMode", methods=["POST"])
 def SetMode():
-    """Switch between Letter and Name modes."""
+    """Switch between Letter and Name modes and return current image for the new mode."""
     mode = request.form.get("mode", "Letter")
     if mode in ["Letter", "Name"]:
         State["Mode"] = mode
         print(f"🔁 Mode switched to: {mode}")
-    return jsonify(success=True)
+    # Return current image (same letter) but from the selected folder
+    img_data = GetImageBase64(State["Current"]) if State["Current"] else ""
+    return jsonify(success=True, mode=State["Mode"], img_data=img_data)
 
 
 @app.route("/Guess", methods=["POST"])

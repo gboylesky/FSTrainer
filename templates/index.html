@@ -131,7 +131,7 @@ main.content {
 }
 @keyframes fadeout { 0%,80%{opacity:1;} 100%{opacity:0;} }
 
-/* -------- Base font: mobile browser (default) -------- */
+/* -------- Button styles -------- */
 .buttons {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -144,7 +144,7 @@ main.content {
 }
 .buttons button {
   height: 36px;
-  font-size: 16px;   /* ✅ browser font size */
+  font-size: 16px;
   border-radius: 6px;
   background: #333;
   color: white;
@@ -158,11 +158,11 @@ main.content {
 .buttons button:hover { background:#444; }
 .buttons button:active { background:#555; transform:scale(0.97); }
 
-/* -------- PWA mode font size -------- */
+/* -------- PWA mode font -------- */
 @media all and (display-mode: standalone) {
   .buttons button {
     height: 46px;
-    font-size: 18px;   /* ✅ PWA font size */
+    font-size: 18px;
   }
 }
 
@@ -173,14 +173,14 @@ main.content {
   }
 }
 
-/* -------- Larger buttons and font on desktop -------- */
+/* -------- Desktop button spacing -------- */
 @media screen and (min-width: 768px) {
   .buttons {
     gap: 12px;
   }
   .buttons button {
     height: 82px;
-    font-size: 24px;   /* ✅ desktop font size */
+    font-size: 24px;
   }
 }
 
@@ -208,6 +208,7 @@ footer {
   margin-left:6px;
 }
 
+/* -------- Modal -------- */
 .modal {
   display:{% if show_results %}flex{% else %}none{% endif %};
   position:fixed;
@@ -233,7 +234,7 @@ footer {
 }
 .close-x:hover{color:white;}
 
-/* -------- Toggle styling (left-aligned + bold + heading size) -------- */
+/* -------- Toggle styling -------- */
 .toggle-group {
   display: inline-flex;
   justify-content: flex-start;
@@ -329,102 +330,127 @@ footer {
 </div>
 
 <script>
-let sequence=0;
+let sequence = 0;
 
 const NameMap = {
-  A: "Unipod", B: "Stair Diam", C: "Mur Flak", D: "Yuan",
-  E: "Meeker", F: "Open Accor", G: "Cataccord", H: "Bow",
+  A: "Unipod", B: "Stairstep Diamond", C: "Murphy Flake", D: "Yuan",
+  E: "Meeker", F: "Open Accordion", G: "Cataccord", H: "Bow",
   J: "Donut", K: "Hook", L: "Adder", M: "Star",
   N: "Crank", O: "Satellite", P: "Sidebody", Q: "Phalanx"
 };
 
-document.addEventListener("DOMContentLoaded",()=>{
-  const Img=document.getElementById("formation-image");
-  const ProgInline=document.querySelector(".progress-inline");
-  const ProgBar=document.querySelector(".progress-bar");
-  const Buttons=document.querySelectorAll("#GuessForm button");
-  const modeLetter=document.getElementById("mode-letter");
-  const modeName=document.getElementById("mode-name");
+document.addEventListener("DOMContentLoaded", () => {
+  const Img = document.getElementById("formation-image");
+  const ProgInline = document.querySelector(".progress-inline");
+  const ProgBar = document.querySelector(".progress-bar");
+  const Buttons = document.querySelectorAll("#GuessForm button");
+  const modeLetter = document.getElementById("mode-letter");
+  const modeName = document.getElementById("mode-name");
 
-  function updateButtonLabels(){
-    if(modeName.checked){
-      Buttons.forEach(btn=>{
-        const name=NameMap[btn.value];
-        btn.textContent=name?name:btn.value;
+  // each button's dataset initially equals its letter
+  Buttons.forEach(btn => { btn.dataset.guess = btn.value; });
+
+  function updateButtonLabels() {
+    if (modeName.checked) {
+      Buttons.forEach(btn => {
+        const name = NameMap[btn.value];
+        btn.textContent = name ? name : btn.value;
+        btn.dataset.guess = name ? name : btn.value;
       });
     } else {
-      Buttons.forEach(btn=>{
-        btn.textContent=btn.value;
+      Buttons.forEach(btn => {
+        btn.textContent = btn.value;
+        btn.dataset.guess = btn.value;
       });
     }
   }
 
-  modeLetter.addEventListener("change",updateButtonLabels);
-  modeName.addEventListener("change",updateButtonLabels);
+  // Toggle events: update mode on server + update image
+  modeLetter.addEventListener("change", () => {
+    updateButtonLabels();
+    fetch("/SetMode", { method: "POST", body: new URLSearchParams({ mode: "Letter" }) })
+    .then(r => r.json()).then(({ img_data }) => {
+      if (img_data) Img.src = "data:image/png;base64," + img_data;
+    });
+  });
 
-  Buttons.forEach(btn=>{
-    btn.addEventListener("click",()=>{
-      const Guess=btn.value;
-      Buttons.forEach(b=>b.disabled=true);
-      const currentSeq=++sequence;
+  modeName.addEventListener("change", () => {
+    updateButtonLabels();
+    fetch("/SetMode", { method: "POST", body: new URLSearchParams({ mode: "Name" }) })
+    .then(r => r.json()).then(({ img_data }) => {
+      if (img_data) Img.src = "data:image/png;base64," + img_data;
+    });
+  });
 
-      fetch("/Guess",{method:"POST",body:new URLSearchParams({guess:Guess})})
-      .then(r=>r.json()).then(data=>{
-        if(currentSeq!==sequence)return;
-        if(ProgInline)ProgInline.textContent=`(${data.progress} of ${data.total})`;
-        if(ProgBar)ProgBar.style.width=`${(data.progress/data.total)*100}%`;
+  Buttons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const Guess = btn.dataset.guess;
+      Buttons.forEach(b => b.disabled = true);
+      const currentSeq = ++sequence;
 
-        if(data.done){
-          setTimeout(()=>{
-            if(currentSeq!==sequence)return;
-            document.getElementById("resultsModal").style.display="flex";
-            const m=document.querySelector(".modal-content");
-            m.querySelector("p:nth-child(3)").textContent=`✅ Correct: ${data.correct}`;
-            m.querySelector("p:nth-child(4)").textContent=`❌ Incorrect: ${data.incorrect}`;
-          },400);
-          Buttons.forEach(b=>b.disabled=false);
+      fetch("/Guess", { method: "POST", body: new URLSearchParams({ guess: Guess }) })
+      .then(r => r.json()).then(data => {
+        if (currentSeq !== sequence) return;
+        if (ProgInline) ProgInline.textContent = `(${data.progress} of ${data.total})`;
+        if (ProgBar) ProgBar.style.width = `${(data.progress / data.total) * 100}%`;
+
+        if (data.done) {
+          setTimeout(() => {
+            if (currentSeq !== sequence) return;
+            document.getElementById("resultsModal").style.display = "flex";
+            const m = document.querySelector(".modal-content");
+            m.querySelector("p:nth-child(3)").textContent = `✅ Correct: ${data.correct}`;
+            m.querySelector("p:nth-child(4)").textContent = `❌ Incorrect: ${data.incorrect}`;
+          }, 400);
+          Buttons.forEach(b => b.disabled = false);
           return;
         }
 
-        let overlay=document.getElementById("overlay");
-        if(overlay)overlay.remove();
-        overlay=document.createElement("div");
-        overlay.id="overlay";overlay.className="overlay";
-        overlay.style.color=data.color;overlay.textContent=data.msg;
+        let overlay = document.getElementById("overlay");
+        if (overlay) overlay.remove();
+        overlay = document.createElement("div");
+        overlay.id = "overlay";
+        overlay.className = "overlay";
+        overlay.style.color = data.color;
+        overlay.textContent = data.msg;
         document.querySelector(".image-wrapper").appendChild(overlay);
 
-        if(data.color!=="red"){
-          const Delay=800;
-          setTimeout(()=>{
-            if(currentSeq!==sequence)return;
+        if (data.color !== "red") {
+          const Delay = 800;
+          setTimeout(() => {
+            if (currentSeq !== sequence) return;
             Img.classList.add("fade-out");
-            setTimeout(()=>{
-              if(currentSeq!==sequence)return;
-              Img.src="data:image/png;base64,"+data.img_data;
-              Img.onload=()=>{Img.classList.remove("fade-out");Img.classList.add("fade-in");
-                setTimeout(()=>Img.classList.remove("fade-in"),300);};
-            },150);
-          },Delay);
+            setTimeout(() => {
+              if (currentSeq !== sequence) return;
+              Img.src = "data:image/png;base64," + data.img_data;
+              Img.onload = () => {
+                Img.classList.remove("fade-out");
+                Img.classList.add("fade-in");
+                setTimeout(() => Img.classList.remove("fade-in"), 300);
+              };
+            }, 150);
+          }, Delay);
         }
-        setTimeout(()=>Buttons.forEach(b=>b.disabled=false),900);
-      }).catch(e=>console.error("Error:",e));
+        setTimeout(() => Buttons.forEach(b => b.disabled = false), 900);
+      }).catch(e => console.error("Error:", e));
     });
   });
 });
 
-function closeResults(){
-  const currentSeq=++sequence;
-  fetch("/Reset",{method:"POST"}).then(r=>r.json()).then(data=>{
-    if(currentSeq!==sequence)return;
-    const Img=document.getElementById("formation-image");
-    Img.src="data:image/png;base64,"+data.img_data;
-    Img.classList.add("fade-in");setTimeout(()=>Img.classList.remove("fade-in"),300);
-    const ProgInline=document.querySelector(".progress-inline");
-    const ProgBar=document.querySelector(".progress-bar");
-    ProgInline.textContent=`(${data.progress} of ${data.total})`;
-    ProgBar.style.width=`${(data.progress/data.total)*100}%`;
-    document.getElementById("resultsModal").style.display="none";
-  }).catch(e=>console.error("Error:",e));
+function closeResults() {
+  const currentSeq = ++sequence;
+  fetch("/Reset", { method: "POST" }).then(r => r.json()).then(data => {
+    if (currentSeq !== sequence) return;
+    const Img = document.getElementById("formation-image");
+    Img.src = "data:image/png;base64," + data.img_data;
+    Img.classList.add("fade-in");
+    setTimeout(() => Img.classList.remove("fade-in"), 300);
+    const ProgInline = document.querySelector(".progress-inline");
+    const ProgBar = document.querySelector(".progress-bar");
+    ProgInline.textContent = `(${data.progress} of ${data.total})`;
+    ProgBar.style.width = `${(data.progress / data.total) * 100}%`;
+    document.getElementById("resultsModal").style.display = "none";
+  }).catch(e => console.error("Error:", e));
 }
 </script>
 </body>
