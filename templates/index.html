@@ -148,8 +148,8 @@ main.content {
   box-sizing: border-box;
 }
 .buttons button {
-  height: 36px;       /* reduced height */
-  font-size: 16px;    /* slightly smaller text */
+  height: 36px;       /* base height */
+  font-size: 16px;    /* base font size */
   border-radius: 6px;
   background: #333;
   color: white;
@@ -210,6 +210,14 @@ footer {
   color:#aaa;font-weight:bold;cursor:pointer;
 }
 .close-x:hover{color:white;}
+
+/* -------- Bigger buttons only in PWA mode -------- */
+@media all and (display-mode: standalone) {
+  .buttons button {
+    height: 46px;      /* larger buttons in PWA */
+    font-size: 18px;   /* larger text in PWA */
+  }
+}
 </style>
 </head>
 
