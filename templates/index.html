@@ -131,6 +131,13 @@ main.content {
 }
 @keyframes fadeout { 0%,80%{opacity:1;} 100%{opacity:0;} }
 
+/* -------- Larger overlay text on mobile (browser + PWA) -------- */
+@media screen and (max-width: 767px) {
+  .overlay {
+    font-size: clamp(34px, 8vw, 60px);   /* was 28–50px, now slightly bigger */
+  }
+}
+
 /* -------- Button styles -------- */
 .buttons {
   display: grid;
