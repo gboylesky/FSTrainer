@@ -189,6 +189,13 @@ main.content {
 .buttons button:hover { background:#444; }
 .buttons button:active { background:#555; transform:scale(0.97); }
 
+/* Force Letter/Name + No Hint to align horizontally */
+.row.mode-row {
+  flex-direction: row !important;
+  align-items: center;
+  justify-content: space-between;
+}
+
 /* -------- PWA mode font and truncation fix -------- */
 @media all and (display-mode: standalone) {
   .buttons button {
@@ -299,6 +306,75 @@ footer {
   color: white;
 }
 
+/* -------- Inline layout for Letter/Name + No Hint -------- */
+.mode-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.hint-toggle-inline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.hint-toggle-inline .hint-label {
+  font-size: clamp(18px, 3.5vw, 26px);
+  font-weight: bold;
+  color: #ccc;
+  transition: color 0.3s ease-in-out;
+}
+
+/* Make the label turn green when active */
+.hint-toggle-inline input:checked ~ .hint-label {
+  color: #4caf50;
+}
+
+/* Adjust switch size for consistency */
+.hint-toggle-inline .switch {
+  position: relative;
+  display: inline-block;
+  width: 46px;
+  height: 26px;
+}
+.hint-toggle-inline .switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.hint-toggle-inline .slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #555;
+  transition: 0.3s;
+  border-radius: 26px;
+}
+.hint-toggle-inline .slider:before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.3s;
+  border-radius: 50%;
+}
+.hint-toggle-inline .switch input:checked + .slider {
+  background-color: #4caf50;
+}
+.hint-toggle-inline .switch input:checked + .slider:before {
+  transform: translateX(20px);
+}
+
 /* --- FINAL FIX: Force Randoms/Blocks toggle to match Letter/Name --- */
 .toggle-group.category-toggle label {
   height: 20px !important; /* default browser */
@@ -354,12 +430,20 @@ footer {
         </div>
       </div>
 
-      <div class="row">
+      <div class="row mode-row">
         <div class="toggle-group">
           <input type="radio" id="mode-letter" name="mode" value="Letter" checked>
           <label for="mode-letter">Letter</label>
           <input type="radio" id="mode-name" name="mode" value="Name">
           <label for="mode-name">Name</label>
+        </div>
+
+        <div class="hint-toggle-inline">
+          <label class="switch">
+            <input type="checkbox" id="no-hint">
+            <span class="slider"></span>
+          </label>
+          <span class="hint-label" id="hint-label">No Hint</span>
         </div>
       </div>
 
