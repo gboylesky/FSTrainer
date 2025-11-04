@@ -493,6 +493,36 @@ document.addEventListener("DOMContentLoaded", () => {
   const appTitle = document.querySelector("h1");
   const catRandoms = document.getElementById("cat-randoms");
   const catBlocks = document.getElementById("cat-blocks");
+  const noHintToggle = document.getElementById("no-hint");
+
+  noHintToggle.addEventListener("change", () => {
+    const isNoHint = noHintToggle.checked;
+
+    fetch("/SetNoHint", {
+      method: "POST",
+      body: new URLSearchParams({ no_hint: isNoHint })
+    })
+    .then(r => r.json())
+    .then(({ img_data }) => {
+      const Img = document.getElementById("formation-image");
+      if (img_data && img_data.length > 0) {
+        // Fade transition for visual feedback
+        Img.classList.add("fade-out");
+        setTimeout(() => {
+          Img.src = "data:image/png;base64," + img_data;
+          Img.onload = () => {
+            Img.classList.remove("fade-out");
+            Img.classList.add("fade-in");
+            setTimeout(() => Img.classList.remove("fade-in"), 300);
+          };
+        }, 150);
+      } else {
+        console.warn("⚠️ No image returned from /SetNoHint");
+      }
+    })
+    .catch(e => console.error("Error toggling No Hint:", e));
+  });
+
 
   Buttons.forEach(btn => { btn.dataset.guess = btn.value; });
 

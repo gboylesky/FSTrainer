@@ -12,6 +12,9 @@ BaseRandomsFolder = os.path.join(app.static_folder, "Randoms")
 LetterFolder = os.path.join(BaseRandomsFolder, "Letter")
 NameFolder = os.path.join(BaseRandomsFolder, "Name")
 
+# ✅ Added: No Hint folder (absolute Windows path)
+NoHintFolder = r"C:\Users\GB\Desktop\FS Trainer Web\static\Randoms\NoHints"
+
 Labels = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
           'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q']
 
@@ -23,17 +26,16 @@ NameMap = {
     'N': 'Crank', 'O': 'Satellite', 'P': 'Sidebody', 'Q': 'Phalanx'
 }
 
-# ---------- Added: Reverse lookup + cleaner comparison ----------
 def _canon(s: str) -> str:
     """Lowercase + trim whitespace for robust matching."""
     return " ".join(s.strip().split()).lower()
 
 ReverseNameMap = {_canon(v): k for k, v in NameMap.items()}
-# ---------------------------------------------------------------
 
 State = {
     "Mode": "Letter",           # Current mode (Letter/Name)
-    "Category": "Randoms",      # ✅ New: active category (Randoms/Blocks)
+    "Category": "Randoms",      # Active category (Randoms/Blocks)
+    "NoHint": False,            # ✅ New: whether No Hint mode is on
     "Remaining": Labels.copy(),
     "Current": None,
     "Correct": 0,
@@ -47,8 +49,13 @@ State = {
 # Helpers
 # ---------------------------
 def GetImageBase64(Label):
-    """Return image base64 string from the folder based on current mode."""
-    folder = LetterFolder if State["Mode"] == "Letter" else NameFolder
+    """Return image base64 string from the folder based on current mode and No Hint."""
+    # ✅ Use NoHints folder if enabled
+    if State.get("NoHint", False):
+        folder = NoHintFolder
+    else:
+        folder = LetterFolder if State["Mode"] == "Letter" else NameFolder
+
     path = os.path.join(folder, f"{Label}.png")
     if not os.path.exists(path):
         print(f"⚠️ Missing: {path}")
@@ -107,7 +114,6 @@ def SetMode():
     return jsonify(success=True, mode=State["Mode"], img_data=img_data)
 
 
-# ✅ NEW: Category route
 @app.route("/SetCategory", methods=["POST"])
 def SetCategory():
     """Switch between Randoms and Blocks categories."""
@@ -116,6 +122,19 @@ def SetCategory():
         State["Category"] = category
         print(f"📁 Category switched to: {category}")
     return jsonify(success=True, category=State["Category"])
+
+
+# ✅ NEW: Handle "No Hint" toggle
+@app.route("/SetNoHint", methods=["POST"])
+def SetNoHint():
+    """Enable or disable No Hint mode and return an updated image."""
+    no_hint = request.form.get("no_hint") in ["true", "True", "1"]
+    State["NoHint"] = no_hint
+    print(f"🧩 No Hint mode set to: {no_hint}")
+
+    # Refresh the current image from the appropriate folder
+    img_data = GetImageBase64(State["Current"]) if State["Current"] else ""
+    return jsonify({"img_data": img_data})
 
 
 @app.route("/Guess", methods=["POST"])
