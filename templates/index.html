@@ -193,10 +193,8 @@ main.content {
 @media all and (display-mode: standalone) {
   .buttons button {
     height: 36px;
-    font-size: 18px;
+    font-size: clamp(14px, 3.5vw, 16px); /* Slightly smaller */
     white-space: nowrap !important;
-    overflow: hidden;
-    text-overflow: ellipsis;
   }
 }
 
