@@ -124,16 +124,23 @@ def SetCategory():
     return jsonify(success=True, category=State["Category"])
 
 
-# ✅ NEW: Handle "No Hint" toggle
+# NEW: Handle "No Hint" toggle
 @app.route("/SetNoHint", methods=["POST"])
 def SetNoHint():
-    """Enable or disable No Hint mode and return an updated image."""
     no_hint = request.form.get("no_hint") in ["true", "True", "1"]
     State["NoHint"] = no_hint
     print(f"🧩 No Hint mode set to: {no_hint}")
 
-    # Refresh the current image from the appropriate folder
-    img_data = GetImageBase64(State["Current"]) if State["Current"] else ""
+    if State["Current"]:
+        img_data = GetImageBase64(State["Current"])
+        if not img_data:
+            print("⚠️ Image not found for current label, picking new one")
+            SetFirstImage()
+            img_data = GetImageBase64(State["Current"])
+    else:
+        SetFirstImage()
+        img_data = GetImageBase64(State["Current"])
+
     return jsonify({"img_data": img_data})
 
 

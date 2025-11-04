@@ -493,9 +493,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const appTitle = document.querySelector("h1");
   const catRandoms = document.getElementById("cat-randoms");
   const catBlocks = document.getElementById("cat-blocks");
+    // --- No Hint toggle handler (works in browser + PWA) ---
   const noHintToggle = document.getElementById("no-hint");
+  const hintLabel = document.getElementById("hint-label");
 
-  noHintToggle.addEventListener("change", () => {
+  function updateNoHintState() {
     const isNoHint = noHintToggle.checked;
 
     fetch("/SetNoHint", {
@@ -506,7 +508,6 @@ document.addEventListener("DOMContentLoaded", () => {
     .then(({ img_data }) => {
       const Img = document.getElementById("formation-image");
       if (img_data && img_data.length > 0) {
-        // Fade transition for visual feedback
         Img.classList.add("fade-out");
         setTimeout(() => {
           Img.src = "data:image/png;base64," + img_data;
@@ -521,8 +522,11 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     })
     .catch(e => console.error("Error toggling No Hint:", e));
-  });
+  }
 
+  // Attach both events to make it reliable on all devices
+  noHintToggle.addEventListener("click", updateNoHintState);
+  noHintToggle.addEventListener("change", updateNoHintState);
 
   Buttons.forEach(btn => { btn.dataset.guess = btn.value; });
 
