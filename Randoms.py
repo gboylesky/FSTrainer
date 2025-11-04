@@ -51,6 +51,7 @@ State = {
 # ---------------------------
 # Helpers
 # ---------------------------
+
 def GetImageBase64(Label):
     """Return image base64 string based on mode and NoHint state."""
     folder = NoHintFolder if State.get("NoHint") else (
@@ -78,8 +79,12 @@ def SetFirstImage():
 # ---------------------------
 # Routes
 # ---------------------------
+
 @app.route("/", methods=["GET"])
 def Home():
+    # Always reset to default hint state on page load
+    State["NoHint"] = False
+        
     SetFirstImage()
     img_data = GetImageBase64(State["Current"])
     return render_template(
