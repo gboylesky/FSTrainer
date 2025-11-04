@@ -189,11 +189,14 @@ main.content {
 .buttons button:hover { background:#444; }
 .buttons button:active { background:#555; transform:scale(0.97); }
 
-/* -------- PWA mode font -------- */
+/* -------- PWA mode font and truncation fix -------- */
 @media all and (display-mode: standalone) {
   .buttons button {
     height: 36px;
     font-size: 18px;
+    white-space: nowrap !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 }
 
@@ -409,7 +412,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const catRandoms = document.getElementById("cat-randoms");
   const catBlocks = document.getElementById("cat-blocks");
 
-  // each button's dataset initially equals its letter
   Buttons.forEach(btn => { btn.dataset.guess = btn.value; });
 
   function updateButtonLabels() {
@@ -427,7 +429,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Category toggle → update title and server
   function updateAppTitle() {
     if (catBlocks.checked) {
       appTitle.textContent = "FS Blocks Trainer";
@@ -445,7 +446,6 @@ document.addEventListener("DOMContentLoaded", () => {
     fetch("/SetCategory", { method: "POST", body: new URLSearchParams({ category: "Blocks" }) });
   });
 
-  // Mode toggle → update label set + server
   modeLetter.addEventListener("change", () => {
     updateButtonLabels();
     fetch("/SetMode", { method: "POST", body: new URLSearchParams({ mode: "Letter" }) })
@@ -462,7 +462,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // Guess handling
   Buttons.forEach(btn => {
     btn.addEventListener("click", () => {
       const Guess = btn.dataset.guess;
