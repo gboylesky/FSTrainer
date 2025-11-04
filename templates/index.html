@@ -502,6 +502,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     fetch("/SetNoHint", {
       method: "POST",
+      cache: "no-store",        // <-- ADD THIS LINE
       body: new URLSearchParams({ no_hint: isNoHint })
     })
     .then(r => r.json())
