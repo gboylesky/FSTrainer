@@ -18,9 +18,7 @@ def add_no_cache_headers(response):
 BaseRandomsFolder = os.path.join(app.static_folder, "Randoms")
 LetterFolder = os.path.join(BaseRandomsFolder, "Letter")
 NameFolder = os.path.join(BaseRandomsFolder, "Name")
-
-# ✅ Added: No Hint folder (absolute Windows path)
-NoHintFolder = r"C:\Users\GB\Desktop\FS Trainer Web\static\Randoms\NoHints"
+NoHintFolder = os.path.join(BaseRandomsFolder, "NoHints")
 
 Labels = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
           'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q']
@@ -42,7 +40,7 @@ ReverseNameMap = {_canon(v): k for k, v in NameMap.items()}
 State = {
     "Mode": "Letter",           # Current mode (Letter/Name)
     "Category": "Randoms",      # Active category (Randoms/Blocks)
-    "NoHint": False,            # ✅ New: whether No Hint mode is on
+    "NoHint": False,            # Whether No Hint mode is on
     "Remaining": Labels.copy(),
     "Current": None,
     "Correct": 0,
@@ -51,13 +49,11 @@ State = {
     "AttemptedWrong": False
 }
 
-
 # ---------------------------
 # Helpers
 # ---------------------------
 def GetImageBase64(Label):
     """Return image base64 string from the folder based on current mode and No Hint."""
-    # ✅ Use NoHints folder if enabled
     if State.get("NoHint", False):
         folder = NoHintFolder
     else:
@@ -65,11 +61,9 @@ def GetImageBase64(Label):
 
     path = os.path.join(folder, f"{Label}.png")
     if not os.path.exists(path):
-        print(f"⚠️ Missing: {path}")
         return ""
     with open(path, "rb") as f:
         return base64.b64encode(f.read()).decode("utf-8")
-
 
 def NextImage():
     """Move to the next random image and clear AttemptedWrong flag."""
@@ -80,13 +74,11 @@ def NextImage():
     State["Current"] = random.choice(State["Remaining"])
     State["AttemptedWrong"] = False
 
-
 def SetFirstImage():
     """Pick a starting image if none currently selected."""
     if not State["Current"]:
         State["Current"] = random.choice(State["Remaining"])
         State["AttemptedWrong"] = False
-
 
 # ---------------------------
 # Routes
@@ -109,47 +101,50 @@ def Home():
         show_next=False
     )
 
-
 @app.route("/SetMode", methods=["POST"])
 def SetMode():
-    """Switch between Letter and Name modes and return current image for the new mode."""
     mode = request.form.get("mode", "Letter")
     if mode in ["Letter", "Name"]:
         State["Mode"] = mode
-        print(f"🔁 Mode switched to: {mode}")
     img_data = GetImageBase64(State["Current"]) if State["Current"] else ""
     return jsonify(success=True, mode=State["Mode"], img_data=img_data)
 
-
 @app.route("/SetCategory", methods=["POST"])
 def SetCategory():
-    """Switch between Randoms and Blocks categories."""
     category = request.form.get("category", "Randoms")
     if category in ["Randoms", "Blocks"]:
         State["Category"] = category
-        print(f"📁 Category switched to: {category}")
     return jsonify(success=True, category=State["Category"])
 
-
-# NEW: Handle "No Hint" toggle
 @app.route("/SetNoHint", methods=["POST"])
 def SetNoHint():
     no_hint = request.form.get("no_hint") in ["true", "True", "1"]
     State["NoHint"] = no_hint
-    print(f"🧩 No Hint mode set to: {no_hint}")
 
-    if State["Current"]:
-        img_data = GetImageBase64(State["Current"])
-        if not img_data:
-            print("⚠️ Image not found for current label, picking new one")
-            SetFirstImage()
-            img_data = GetImageBase64(State["Current"])
+    if no_hint:
+        folder = os.path.join(app.static_folder, "Randoms", "NoHints")
+    else:
+        folder = LetterFolder if State["Mode"] == "Letter" else NameFolder
+
+    current_label = State.get("Current")
+    if current_label:
+        image_path = os.path.join(folder, f"{current_label}.png")
+        if os.path.exists(image_path):
+            with open(image_path, "rb") as f:
+                img_data = base64.b64encode(f.read()).decode("utf-8")
+        else:
+            files = [f for f in os.listdir(folder) if f.lower().endswith(".png")]
+            if not files:
+                return jsonify({"img_data": ""})
+            fallback = random.choice(files)
+            with open(os.path.join(folder, fallback), "rb") as f:
+                img_data = base64.b64encode(f.read()).decode("utf-8")
+            State["Current"] = os.path.splitext(fallback)[0]
     else:
         SetFirstImage()
         img_data = GetImageBase64(State["Current"])
 
     return jsonify({"img_data": img_data})
-
 
 @app.route("/Guess", methods=["POST"])
 def Guess():
@@ -174,7 +169,6 @@ def Guess():
     if guessed_letter == State["Current"]:
         msg = "✅ Correct"
         color = "lime"
-
         if not State["AttemptedWrong"]:
             State["Correct"] += 1
         State["Progress"] += 1
@@ -189,9 +183,7 @@ def Guess():
                 "progress": done_progress,
                 "total": len(Labels)
             })
-
         NextImage()
-
     else:
         msg = "❌ Try Again"
         color = "red"
@@ -210,10 +202,8 @@ def Guess():
         "incorrect": State["Incorrect"]
     })
 
-
 @app.route("/Reset", methods=["POST"])
 def Reset():
-    """Reset all counters and reload a fresh random image."""
     State["Remaining"] = Labels.copy()
     State["Current"] = None
     State["Correct"] = 0
@@ -232,10 +222,9 @@ def Reset():
         "incorrect": State["Incorrect"]
     })
 
-
 # ---------------------------
 # Entry point
 # ---------------------------
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, debug=True)
+    app.run(host="0.0.0.0", port=port)
