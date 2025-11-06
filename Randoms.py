@@ -1,9 +1,17 @@
 import os
 import random
 import base64
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, session
+from flask_session import Session  # pip install Flask-Session
 
+# ---------------------------
+# App Setup
+# ---------------------------
 app = Flask(__name__)
+app.secret_key = "supersecretkey"  # required for session encryption
+app.config["SESSION_TYPE"] = "filesystem"  # store session data per user
+app.config["SESSION_PERMANENT"] = False
+Session(app)
 
 @app.after_request
 def add_no_cache_headers(response):
@@ -15,7 +23,6 @@ def add_no_cache_headers(response):
 # ---------------------------
 # Configuration
 # ---------------------------
-
 BaseRandomsFolder = os.path.join(app.static_folder, "Randoms")
 LetterFolder = os.path.join(BaseRandomsFolder, "Letter")
 NameFolder = os.path.join(BaseRandomsFolder, "Name")
@@ -36,45 +43,54 @@ def _canon(s: str) -> str:
 
 ReverseNameMap = {_canon(v): k for k, v in NameMap.items()}
 
-State = {
-    "Mode": "Letter",
-    "Category": "Randoms",
-    "NoHint": False,
-    "Remaining": Labels.copy(),
-    "Current": None,
-    "Correct": 0,
-    "Incorrect": 0,
-    "Progress": 0,
-    "AttemptedWrong": False
-}
-
 # ---------------------------
 # Helpers
 # ---------------------------
+def get_state():
+    """Get or initialize per-session state."""
+    if "state" not in session:
+        session["state"] = {
+            "Mode": "Letter",
+            "Category": "Randoms",
+            "NoHint": False,
+            "TestMode": False,
+            "Remaining": Labels.copy(),
+            "Current": None,
+            "Correct": 0,
+            "Incorrect": 0,
+            "Progress": 0,
+            "AttemptedWrong": False
+        }
+    return session["state"]
 
-def GetImageBase64(Label):
+def save_state(state):
+    """Persist modified state to session."""
+    session["state"] = state
+    session.modified = True
+
+def GetImageBase64(label, state):
     """Return image base64 string based on mode and NoHint state."""
-    folder = NoHintFolder if State.get("NoHint") else (
-        LetterFolder if State["Mode"] == "Letter" else NameFolder
+    folder = NoHintFolder if state.get("NoHint") else (
+        LetterFolder if state["Mode"] == "Letter" else NameFolder
     )
-    path = os.path.join(folder, f"{Label}.png")
+    path = os.path.join(folder, f"{label}.png")
     if not os.path.exists(path):
         return ""
     with open(path, "rb") as f:
         return base64.b64encode(f.read()).decode("utf-8")
 
-def NextImage():
-    if State["Current"] in State["Remaining"]:
-        State["Remaining"].remove(State["Current"])
-    if not State["Remaining"]:
-        State["Remaining"] = Labels.copy()
-    State["Current"] = random.choice(State["Remaining"])
-    State["AttemptedWrong"] = False
+def NextImage(state):
+    if state["Current"] in state["Remaining"]:
+        state["Remaining"].remove(state["Current"])
+    if not state["Remaining"]:
+        state["Remaining"] = Labels.copy()
+    state["Current"] = random.choice(state["Remaining"])
+    state["AttemptedWrong"] = False
 
-def SetFirstImage():
-    if not State["Current"]:
-        State["Current"] = random.choice(State["Remaining"])
-        State["AttemptedWrong"] = False
+def SetFirstImage(state):
+    if not state["Current"]:
+        state["Current"] = random.choice(state["Remaining"])
+        state["AttemptedWrong"] = False
 
 # ---------------------------
 # Routes
@@ -82,49 +98,62 @@ def SetFirstImage():
 
 @app.route("/", methods=["GET"])
 def Home():
-    # Always reset to default hint state on page load
-    State["NoHint"] = False
-        
-    SetFirstImage()
-    img_data = GetImageBase64(State["Current"])
+    state = get_state()
+    state["NoHint"] = False
+    SetFirstImage(state)
+    img_data = GetImageBase64(state["Current"], state)
+    save_state(state)
     return render_template(
         "index.html",
         img_data=img_data,
         msg="",
         color="white",
         labels=Labels,
-        progress=State["Progress"],
+        progress=state["Progress"],
         total=len(Labels),
-        correct=State["Correct"],
-        incorrect=State["Incorrect"],
+        correct=state["Correct"],
+        incorrect=state["Incorrect"],
         show_results=False,
         show_next=False
     )
 
 @app.route("/SetMode", methods=["POST"])
 def SetMode():
+    state = get_state()
     mode = request.form.get("mode", "Letter")
     if mode in ["Letter", "Name"]:
-        State["Mode"] = mode
-    img_data = GetImageBase64(State["Current"]) if State["Current"] else ""
-    return jsonify(success=True, mode=State["Mode"], img_data=img_data)
+        state["Mode"] = mode
+    img_data = GetImageBase64(state["Current"], state) if state["Current"] else ""
+    save_state(state)
+    return jsonify(success=True, mode=state["Mode"], img_data=img_data)
 
 @app.route("/SetCategory", methods=["POST"])
 def SetCategory():
+    state = get_state()
     category = request.form.get("category", "Randoms")
     if category in ["Randoms", "Blocks"]:
-        State["Category"] = category
-    return jsonify(success=True, category=State["Category"])
+        state["Category"] = category
+    save_state(state)
+    return jsonify(success=True, category=state["Category"])
+
+@app.route("/SetTestMode", methods=["POST"])
+def SetTestMode():
+    state = get_state()
+    test_mode = request.form.get("test_mode") in ["true", "True", "1"]
+    state["TestMode"] = test_mode
+    save_state(state)
+    return jsonify(success=True, test_mode=test_mode)
 
 @app.route("/SetNoHint", methods=["POST"])
 def SetNoHint():
+    state = get_state()
     no_hint = request.form.get("no_hint") in ["true", "True", "1"]
-    State["NoHint"] = no_hint
+    state["NoHint"] = no_hint
 
     folder = NoHintFolder if no_hint else (
-        LetterFolder if State["Mode"] == "Letter" else NameFolder
+        LetterFolder if state["Mode"] == "Letter" else NameFolder
     )
-    current_label = State.get("Current")
+    current_label = state.get("Current")
 
     if current_label:
         image_path = os.path.join(folder, f"{current_label}.png")
@@ -138,23 +167,25 @@ def SetNoHint():
             fallback = random.choice(files)
             with open(os.path.join(folder, fallback), "rb") as f:
                 img_data = base64.b64encode(f.read()).decode("utf-8")
-            State["Current"] = os.path.splitext(fallback)[0]
+            state["Current"] = os.path.splitext(fallback)[0]
     else:
-        SetFirstImage()
-        img_data = GetImageBase64(State["Current"])
+        SetFirstImage(state)
+        img_data = GetImageBase64(state["Current"], state)
 
+    save_state(state)
     return jsonify({"img_data": img_data})
 
 @app.route("/Guess", methods=["POST"])
 def Guess():
+    state = get_state()
     guess_label = request.form.get("guess")
     if not guess_label:
         return jsonify({"error": "Missing guess"}), 400
 
-    if not State["Current"]:
-        SetFirstImage()
+    if not state["Current"]:
+        SetFirstImage(state)
 
-    if State["Mode"] == "Letter":
+    if state["Mode"] == "Letter":
         guessed_letter = guess_label
     else:
         canon_guess = _canon(guess_label)
@@ -165,60 +196,68 @@ def Guess():
                     guessed_letter = letter
                     break
 
-    if guessed_letter == State["Current"]:
+    if guessed_letter == state["Current"]:
         msg = "✅ Correct"
         color = "lime"
-        if not State["AttemptedWrong"]:
-            State["Correct"] += 1
-        State["Progress"] += 1
-        if len(State["Remaining"]) == 1:
-            State["Remaining"].remove(State["Current"])
+        if not state["AttemptedWrong"]:
+            state["Correct"] += 1
+        state["Progress"] += 1
+        if len(state["Remaining"]) == 1:
+            state["Remaining"].remove(state["Current"])
+            save_state(state)
             return jsonify({
                 "done": True,
-                "correct": State["Correct"],
-                "incorrect": State["Incorrect"],
-                "progress": State["Progress"],
+                "correct": state["Correct"],
+                "incorrect": state["Incorrect"],
+                "progress": state["Progress"],
                 "total": len(Labels)
             })
-        NextImage()
+        NextImage(state)
     else:
         msg = "❌ Try Again"
         color = "red"
-        if not State["AttemptedWrong"]:
-            State["Incorrect"] += 1
-            State["AttemptedWrong"] = True
+        if not state["AttemptedWrong"]:
+            state["Incorrect"] += 1
+            state["AttemptedWrong"] = True
 
-    img_data = GetImageBase64(State["Current"])
+    img_data = GetImageBase64(state["Current"], state)
+    save_state(state)
     return jsonify({
         "img_data": img_data,
         "msg": msg,
         "color": color,
-        "progress": State["Progress"],
+        "progress": state["Progress"],
         "total": len(Labels),
-        "correct": State["Correct"],
-        "incorrect": State["Incorrect"]
+        "correct": state["Correct"],
+        "incorrect": state["Incorrect"]
     })
 
 @app.route("/Reset", methods=["POST"])
 def Reset():
-    State["Remaining"] = Labels.copy()
-    State["Current"] = None
-    State["Correct"] = 0
-    State["Incorrect"] = 0
-    State["Progress"] = 0
-    State["AttemptedWrong"] = False
-    SetFirstImage()
-    img_data = GetImageBase64(State["Current"])
+    state = {
+        "Mode": "Letter",
+        "Category": "Randoms",
+        "NoHint": False,
+        "Remaining": Labels.copy(),
+        "Current": None,
+        "Correct": 0,
+        "Incorrect": 0,
+        "Progress": 0,
+        "AttemptedWrong": False
+    }
+    SetFirstImage(state)
+    img_data = GetImageBase64(state["Current"], state)
+    save_state(state)
     return jsonify({
         "img_data": img_data,
-        "progress": State["Progress"],
+        "progress": state["Progress"],
         "total": len(Labels),
-        "correct": State["Correct"],
-        "incorrect": State["Incorrect"]
+        "correct": state["Correct"],
+        "incorrect": state["Incorrect"]
     })
 
 # ---------------------------
-# Entry point
+# Entry Point
 # ---------------------------
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))

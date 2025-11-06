@@ -189,6 +189,13 @@ main.content {
 .buttons button:hover { background:#444; }
 .buttons button:active { background:#555; transform:scale(0.97); }
 
+/* Force Randoms/Blocks + Test to align horizontally */
+.row.category-row {
+  flex-direction: row !important;
+  align-items: center;
+  justify-content: space-between;
+}
+
 /* Force Letter/Name + No Hint to align horizontally */
 .row.mode-row {
   flex-direction: row !important;
@@ -329,6 +336,48 @@ footer {
   transition: color 0.3s ease-in-out;
 }
 
+/* Visually dim and block clicks when disabled */
+#no-hint:disabled + .slider {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;        /* <— blocks clicks on the slider */
+}
+#no-hint:disabled ~ #hint-label {
+  opacity: 0.4;
+  pointer-events: none;        /* <— blocks clicks on the label text */
+}
+
+/* -------- Inline layout for Randoms/Blocks + Test -------- */
+.category-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+/* -------- Remove padding/margin for consistent alignment -------- */
+/* Remove side padding for slot banner to make it full width */
+.row:has(.slot-banner) {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+.mode-row,
+.category-row {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+.category-row {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+.toggle-group {
+  margin-left: 0 !important;
+}
+
 /* Make the label turn green when active */
 .hint-toggle-inline input:checked ~ .hint-label {
   color: #4caf50;
@@ -413,21 +462,28 @@ footer {
     </div>
 
     <main class="content">
-      <div class="row">
-        <!-- ✅ Category toggle replaces "Formation" -->
-        <div class="toggle-group category-toggle section-top section-bottom">
+      <div class="row category-row">
+        <div class="toggle-group category-toggle">
           <input type="radio" id="cat-randoms" name="category" value="Randoms" checked>
           <label for="cat-randoms">Randoms</label>
           <input type="radio" id="cat-blocks" name="category" value="Blocks">
           <label for="cat-blocks">Blocks</label>
         </div>
 
-        <div class="image-wrapper" id="image-area">
-          <img id="formation-image" src="data:image/png;base64,{{ img_data }}" alt="Formation">
-          {% if msg %}
-          <div id="overlay" class="overlay" style="color:{{ color }}">{{ msg }}</div>
-          {% endif %}
+        <div class="hint-toggle-inline">
+          <label class="switch">
+            <input type="checkbox" id="test-mode">
+            <span class="slider"></span>
+          </label>
+          <span class="hint-label" id="test-label">Test</span>
         </div>
+      </div>
+
+      <div class="image-wrapper" id="image-area">
+        <img id="formation-image" src="data:image/png;base64,{{ img_data }}" alt="Formation">
+        {% if msg %}
+        <div id="overlay" class="overlay" style="color:{{ color }}">{{ msg }}</div>
+        {% endif %}
       </div>
 
       <div class="row mode-row">
@@ -493,7 +549,86 @@ document.addEventListener("DOMContentLoaded", () => {
   const appTitle = document.querySelector("h1");
   const catRandoms = document.getElementById("cat-randoms");
   const catBlocks = document.getElementById("cat-blocks");
-    // --- No Hint toggle handler (works in browser + PWA) ---
+  // --- Test slider handler (works in browser + PWA) ---   
+  const testToggle = document.getElementById("test-mode");
+  const testLabel = document.getElementById("test-label");
+
+  function updateTestModeState() {
+    const isTestMode = testToggle.checked;
+    fetch("/SetTestMode", {
+      method: "POST",
+      cache: "no-store",
+      body: new URLSearchParams({ test_mode: isTestMode })
+    })
+    .then(r => r.json())
+    .then(({ success }) => {
+      console.log("Test mode:", success ? (isTestMode ? "ON" : "OFF") : "FAILED");
+    })
+    .catch(e => console.error("Error toggling Test mode:", e));
+  }
+
+  testToggle.addEventListener("click", updateTestModeState);
+  testToggle.addEventListener("change", updateTestModeState);
+
+  function updateNoHintAvailability() {
+    const noHintToggle = document.getElementById("no-hint");
+    const hintLabel = document.getElementById("hint-label");
+    const testToggle = document.getElementById("test-mode");
+
+    if (!testToggle.checked) {
+      // Turn off No Hint when Test is deselected
+      if (noHintToggle.checked) {
+        noHintToggle.checked = false;
+
+        // Tell backend to switch NoHint off
+        fetch("/SetNoHint", {
+          method: "POST",
+          cache: "no-store",
+          body: new URLSearchParams({ no_hint: false })
+        })
+        .then(r => r.json())
+        .then(({ img_data }) => {
+          // Refresh the image according to the current Letter/Name mode
+          if (img_data && img_data.length > 0) {
+            const Img = document.getElementById("formation-image");
+            Img.classList.add("fade-out");
+            setTimeout(() => {
+              Img.src = "data:image/png;base64," + img_data;
+              Img.onload = () => {
+                Img.classList.remove("fade-out");
+                Img.classList.add("fade-in");
+                setTimeout(() => Img.classList.remove("fade-in"), 300);
+              };
+            }, 150);
+          }
+        })
+        .catch(e => console.error("Error resetting No Hint:", e));
+      }
+
+      // Disable No Hint slider visually
+      noHintToggle.disabled = true;
+      hintLabel.style.opacity = "0.5";
+      hintLabel.style.pointerEvents = "none";
+    } else {
+      // Enable No Hint when Test is active
+      noHintToggle.disabled = false;
+      hintLabel.style.opacity = "1";
+      hintLabel.style.pointerEvents = "auto";
+    }
+  }
+
+
+  testToggle.addEventListener("click", () => {
+    updateTestModeState();
+    updateNoHintAvailability();
+  });
+
+  testToggle.addEventListener("change", () => {
+    updateTestModeState();
+    updateNoHintAvailability();
+  });
+
+  // --- No Hint slider handler (works in browser + PWA) ---
   const noHintToggle = document.getElementById("no-hint");
   const hintLabel = document.getElementById("hint-label");
 
@@ -528,6 +663,9 @@ document.addEventListener("DOMContentLoaded", () => {
   // Attach both events to make it reliable on all devices
   noHintToggle.addEventListener("click", updateNoHintState);
   noHintToggle.addEventListener("change", updateNoHintState);
+
+  // --- Enable/Disable NoHint slider  ---
+  updateNoHintAvailability();
 
   Buttons.forEach(btn => { btn.dataset.guess = btn.value; });
 
