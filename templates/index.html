@@ -163,6 +163,7 @@ main.content {
 }
 
 /* -------- Button styles -------- */
+/* --- Unified alignment for button grid --- */
 .buttons {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -188,7 +189,27 @@ main.content {
   word-break: keep-all;
 }
 .buttons button:hover { background:#444; }
-.buttons button:active { background:#555; transform:scale(0.97); }
+.buttons button:active {
+  background: #4caf50;       /* flash green when pressed */
+  border-color: #4caf50;
+  color: white;
+  transform: scale(0.97);
+}
+
+/* --- Highlight the currently selected button in review mode (Test OFF) --- */
+button.selected {
+  background: #4caf50 !important;  /* same green as active toggles */
+  color: white !important;          /* keep text white */
+  border-color: #4caf50 !important;
+  font-weight: bold;
+}
+
+/* Force Randoms/Blocks + Test to align horizontally */
+.row.category-row {
+  flex-direction: row !important;
+  align-items: center;
+  justify-content: space-between;
+}
 
 /* Force Letter/Name + No Hint to align horizontally */
 .row.mode-row {
@@ -246,6 +267,11 @@ footer {
 .progress-inline {
   font-weight:bold;
   margin-left:6px;
+}
+
+/* Smooth transition for greying out Progress heading */
+#progressHeading[style*="opacity: 0.5"] {
+  transition: opacity 0.2s ease;
 }
 
 /* -------- Modal -------- */
@@ -330,6 +356,46 @@ footer {
   transition: color 0.3s ease-in-out;
 }
 
+/* Visually dim and block clicks when disabled */
+#no-hint:disabled + .slider {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;        /* <— blocks clicks on the slider */
+}
+#no-hint:disabled ~ #hint-label {
+  opacity: 0.4;
+  pointer-events: none;        /* <— blocks clicks on the label text */
+}
+
+/* -------- Inline layout for Randoms/Blocks + Test -------- */
+.category-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+/* -------- Consistent side alignment for all sections -------- */
+.row,
+.image-wrapper {
+  padding-left: calc(var(--gutter) + env(safe-area-inset-left, 0));
+  padding-right: calc(var(--gutter) + env(safe-area-inset-right, 0));
+  box-sizing: border-box;
+}
+
+/* Make all rows align evenly (no extra margin offsets) */
+.mode-row,
+.category-row {
+  margin-left: 0;
+  margin-right: 0;
+}
+
+/* Keep toggle group properly aligned within its row */
+.toggle-group {
+  margin-left: 0;
+}
+
 /* Make the label turn green when active */
 .hint-toggle-inline input:checked ~ .hint-label {
   color: #4caf50;
@@ -396,6 +462,13 @@ footer {
     font-size: 30px !important;
   }
 }
+
+/* Fully lock the grid when class .locked is applied */
+#GuessForm.locked {
+  pointer-events: none !important;
+  opacity: 0.6;              /* optional dimming to show it's inactive */
+  transition: opacity 0.2s ease;
+}
 </style>
 </head>
 
@@ -414,21 +487,28 @@ footer {
     </div>
 
     <main class="content">
-      <div class="row">
-        <!-- ✅ Category toggle replaces "Formation" -->
-        <div class="toggle-group category-toggle section-top section-bottom">
+      <div class="row category-row">
+        <div class="toggle-group category-toggle">
           <input type="radio" id="cat-randoms" name="category" value="Randoms" checked>
           <label for="cat-randoms">Randoms</label>
           <input type="radio" id="cat-blocks" name="category" value="Blocks">
           <label for="cat-blocks">Blocks</label>
         </div>
 
-        <div class="image-wrapper" id="image-area">
-          <img id="formation-image" src="data:image/png;base64,{{ img_data }}" alt="Formation">
-          {% if msg %}
-          <div id="overlay" class="overlay" style="color:{{ color }}">{{ msg }}</div>
-          {% endif %}
+        <div class="hint-toggle-inline">
+          <label class="switch">
+            <input type="checkbox" id="test-mode">
+            <span class="slider"></span>
+          </label>
+          <span class="hint-label" id="test-label">Test</span>
         </div>
+      </div>
+
+      <div class="image-wrapper" id="image-area">
+        <img id="formation-image" src="data:image/png;base64,{{ img_data }}" alt="Formation">
+        {% if msg %}
+        <div id="overlay" class="overlay" style="color:{{ color }}">{{ msg }}</div>
+        {% endif %}
       </div>
 
       <div class="row mode-row">
@@ -456,7 +536,7 @@ footer {
     </main>
 
     <footer class="row">
-      <h2 class="section-top section-bottom">
+      <h2 id="progressHeading" class="section-top section-bottom">
         Progress <span class="progress-inline">({{ progress }} of {{ total }})</span>
       </h2>
       <div class="progress-bar-container"><div class="progress-bar"></div></div>
@@ -477,6 +557,12 @@ footer {
 <script>
 let sequence = 0;
 
+function setGridLocked(state) {
+  const grid = document.getElementById("GuessForm");
+  if (state) grid.classList.add("locked");
+  else grid.classList.remove("locked");
+}
+
 const NameMap = {
   A: "Unipod", B: "Stair Diam", C: "Mrphy Flak", D: "Yuan",
   E: "Meeker", F: "Open Accor", G: "Cataccord", H: "Bow",
@@ -494,7 +580,135 @@ document.addEventListener("DOMContentLoaded", () => {
   const appTitle = document.querySelector("h1");
   const catRandoms = document.getElementById("cat-randoms");
   const catBlocks = document.getElementById("cat-blocks");
-    // --- No Hint toggle handler (works in browser + PWA) ---
+  // --- Test slider handler (works in browser + PWA) ---   
+  const testToggle = document.getElementById("test-mode");
+  const testLabel = document.getElementById("test-label");
+
+  function updateTestModeState() {
+    const isTestMode = testToggle.checked;
+    fetch("/SetTestMode", {
+      method: "POST",
+      cache: "no-store",
+      body: new URLSearchParams({ test_mode: isTestMode })
+    })
+    .then(r => r.json())
+    .then(({ success }) => {
+      console.log("Test mode:", success ? (isTestMode ? "ON" : "OFF") : "FAILED");
+    })
+    .catch(e => console.error("Error toggling Test mode:", e));
+  }
+
+  testToggle.addEventListener("click", updateTestModeState);
+  testToggle.addEventListener("change", updateTestModeState);
+
+  function updateNoHintAvailability() {
+    const noHintToggle = document.getElementById("no-hint");
+    const hintLabel = document.getElementById("hint-label");
+    const testToggle = document.getElementById("test-mode");
+
+    if (!testToggle.checked) {
+      // Turn off No Hint when Test is deselected
+      if (noHintToggle.checked) {
+        noHintToggle.checked = false;
+
+        // Tell backend to switch NoHint off
+        fetch("/SetNoHint", {
+          method: "POST",
+          cache: "no-store",
+          body: new URLSearchParams({ no_hint: false })
+        })
+        .then(r => r.json())
+        .then(({ img_data }) => {
+          // Refresh the image according to the current Letter/Name mode
+          if (img_data && img_data.length > 0) {
+            const Img = document.getElementById("formation-image");
+            Img.classList.add("fade-out");
+            setTimeout(() => {
+              Img.src = "data:image/png;base64," + img_data;
+              Img.onload = () => {
+                Img.classList.remove("fade-out");
+                Img.classList.add("fade-in");
+                setTimeout(() => Img.classList.remove("fade-in"), 300);
+              };
+            }, 150);
+          }
+        })
+        .catch(e => console.error("Error resetting No Hint:", e));
+      }
+
+      // Disable No Hint slider visually
+      noHintToggle.disabled = true;
+      hintLabel.style.opacity = "0.5";
+      hintLabel.style.pointerEvents = "none";
+    } else {
+      // Enable No Hint when Test is active
+      noHintToggle.disabled = false;
+      hintLabel.style.opacity = "1";
+      hintLabel.style.pointerEvents = "auto";
+    }
+  }
+
+  testToggle.addEventListener("change", () => {
+    const isTestMode = testToggle.checked;
+    updateTestModeState();
+    updateNoHintAvailability();
+
+    if (isTestMode) {
+      // --- TEST MODE ACTIVATED ---
+      // Clear all button highlights
+      Buttons.forEach(b => b.classList.remove("selected"));
+
+      // Fetch a new random image (same as app startup in Test mode)
+      fetch("/Reset", { method: "POST" })
+        .then(r => r.json())
+        .then(data => {
+          if (data.img_data) {
+            Img.classList.add("fade-out");
+            setTimeout(() => {
+              Img.src = "data:image/png;base64," + data.img_data;
+              Img.onload = () => {
+                Img.classList.remove("fade-out");
+                Img.classList.add("fade-in");
+                setTimeout(() => Img.classList.remove("fade-in"), 300);
+              };
+            }, 150);
+          }
+          // Reset progress display
+          if (ProgInline) ProgInline.textContent = `(${data.progress} of ${data.total})`;
+          if (ProgBar) ProgBar.style.width = `${(data.progress / data.total) * 100}%`;
+        })
+        .catch(e => console.error("Error resetting for Test mode:", e));
+
+    } else {
+      // --- REVIEW MODE ACTIVATED ---
+      // Default back to A.png and highlight A
+      const firstBtn = document.querySelector('#GuessForm button[value="A"]');
+      Buttons.forEach(b => b.classList.remove("selected"));
+      if (firstBtn) {
+        firstBtn.classList.add("selected");
+        const mode = modeLetter.checked ? "Letter" : "Name";
+        const folder = mode === "Letter" ? "Letter" : "Name";
+        Img.classList.add("fade-out");
+        setTimeout(() => {
+          Img.src = `/static/Randoms/${folder}/A.png`;
+          Img.onload = () => {
+            Img.classList.remove("fade-out");
+            Img.classList.add("fade-in");
+            setTimeout(() => Img.classList.remove("fade-in"), 300);
+          };
+        }, 150);
+      }
+
+      // Reset progress and grey out heading
+      ProgInline.textContent = "(0 of 16)";
+      ProgBar.style.width = "0%";
+      const progressHeading = document.getElementById("progressHeading");
+      progressHeading.style.opacity = "0.6";
+      progressHeading.style.color = "#888";
+    }
+  });
+
+  // --- No Hint slider handler (works in browser + PWA) ---
   const noHintToggle = document.getElementById("no-hint");
   const hintLabel = document.getElementById("hint-label");
 
@@ -529,6 +743,20 @@ document.addEventListener("DOMContentLoaded", () => {
   // Attach both events to make it reliable on all devices
   noHintToggle.addEventListener("click", updateNoHintState);
   noHintToggle.addEventListener("change", updateNoHintState);
+
+  // --- Enable/Disable NoHint slider  ---
+  updateNoHintAvailability();
+
+  // --- Default state on app load ---
+  if (!testToggle.checked) {
+    const firstBtn = document.querySelector('#GuessForm button[value="A"]');
+    if (firstBtn) {
+      firstBtn.classList.add("selected");
+      const mode = modeLetter.checked ? "Letter" : "Name";
+      const folder = mode === "Letter" ? "Letter" : "Name";
+      Img.src = `/static/Randoms/${folder}/A.png`;
+    }
+  }
 
   Buttons.forEach(btn => { btn.dataset.guess = btn.value; });
 
@@ -583,56 +811,101 @@ document.addEventListener("DOMContentLoaded", () => {
   Buttons.forEach(btn => {
     btn.addEventListener("click", () => {
       const Guess = btn.dataset.guess;
+      const isTestMode = document.getElementById("test-mode").checked;
+      const Img = document.getElementById("formation-image");
+      const modeLetter = document.getElementById("mode-letter");
+      const modeName = document.getElementById("mode-name");
+
+      // --- REVIEW MODE: When Test is OFF, just show image and mark button ---
+      if (!isTestMode) {
+        // ✅ Reuse the same working lock method
+        Buttons.forEach(b => b.disabled = true);
+
+        // Remove previous highlight and set the new one
+        Buttons.forEach(b => b.classList.remove("selected"));
+        btn.classList.add("selected");
+
+        // Determine which image to load
+        const mode = modeLetter.checked ? "Letter" : "Name";
+        const imgName = btn.value + ".png";
+        const folder = mode === "Letter" ? "Letter" : "Name";
+
+        // Fade-out effect before changing
+        Img.classList.add("fade-out");
+        const newSrc = `/static/Randoms/${folder}/${imgName}`;
+
+        setTimeout(() => {
+          Img.src = newSrc;
+        }, 100);
+
+        // Wait for new image to fully load before re-enabling grid
+        Img.onload = () => {
+          Img.classList.remove("fade-out");
+          Img.classList.add("fade-in");
+          setTimeout(() => Img.classList.remove("fade-in"), 300);
+
+          // ✅ Re-enable buttons only once loaded (same as Test mode)
+          Buttons.forEach(b => b.disabled = false);
+        };
+
+        return;
+      }
+
+      // --- NORMAL TEST MODE (existing logic below) ---
       Buttons.forEach(b => b.disabled = true);
       const currentSeq = ++sequence;
 
+      setGridLocked(true);
+
       fetch("/Guess", { method: "POST", body: new URLSearchParams({ guess: Guess }) })
-      .then(r => r.json()).then(data => {
-        if (currentSeq !== sequence) return;
-        if (ProgInline) ProgInline.textContent = `(${data.progress} of ${data.total})`;
-        if (ProgBar) ProgBar.style.width = `${(data.progress / data.total) * 100}%`;
+        .then(r => r.json()).then(data => {
+          if (currentSeq !== sequence) return;
+          if (ProgInline) ProgInline.textContent = `(${data.progress} of ${data.total})`;
+          if (ProgBar) ProgBar.style.width = `${(data.progress / data.total) * 100}%`;
 
-        if (data.done) {
-          setTimeout(() => {
-            if (currentSeq !== sequence) return;
-            document.getElementById("resultsModal").style.display = "flex";
-            const m = document.querySelector(".modal-content");
-            m.querySelector("p:nth-child(3)").textContent = `✅ Correct: ${data.correct}`;
-            m.querySelector("p:nth-child(4)").textContent = `❌ Incorrect: ${data.incorrect}`;
-          }, 400);
-          Buttons.forEach(b => b.disabled = false);
-          return;
-        }
-
-        let overlay = document.getElementById("overlay");
-        if (overlay) overlay.remove();
-        overlay = document.createElement("div");
-        overlay.id = "overlay";
-        overlay.className = "overlay";
-        overlay.style.color = data.color;
-        overlay.textContent = data.msg;
-        document.querySelector(".image-wrapper").appendChild(overlay);
-
-        if (data.color !== "red") {
-          const Delay = 800;
-          setTimeout(() => {
-            if (currentSeq !== sequence) return;
-            Img.classList.add("fade-out");
+          if (data.done) {
             setTimeout(() => {
               if (currentSeq !== sequence) return;
-              Img.src = "data:image/png;base64," + data.img_data;
-              Img.onload = () => {
-                Img.classList.remove("fade-out");
-                Img.classList.add("fade-in");
-                setTimeout(() => Img.classList.remove("fade-in"), 300);
-              };
-            }, 150);
-          }, Delay);
-        }
-        setTimeout(() => Buttons.forEach(b => b.disabled = false), 900);
-      }).catch(e => console.error("Error:", e));
+              document.getElementById("resultsModal").style.display = "flex";
+              const m = document.querySelector(".modal-content");
+              m.querySelector("p:nth-child(3)").textContent = `✅ Correct: ${data.correct}`;
+              m.querySelector("p:nth-child(4)").textContent = `❌ Incorrect: ${data.incorrect}`;
+            }, 400);
+            Buttons.forEach(b => b.disabled = false);
+            return;
+          }
+
+          let overlay = document.getElementById("overlay");
+          if (overlay) overlay.remove();
+          overlay = document.createElement("div");
+          overlay.id = "overlay";
+          overlay.className = "overlay";
+          overlay.style.color = data.color;
+          overlay.textContent = data.msg;
+          document.querySelector(".image-wrapper").appendChild(overlay);
+
+          if (data.color !== "red") {
+            const Delay = 800;
+            setTimeout(() => {
+              if (currentSeq !== sequence) return;
+              Img.classList.add("fade-out");
+              setTimeout(() => {
+                if (currentSeq !== sequence) return;
+                Img.src = "data:image/png;base64," + data.img_data;
+                Img.onload = () => {
+                  Img.classList.remove("fade-out");
+                  Img.classList.add("fade-in");
+                  setTimeout(() => Img.classList.remove("fade-in"), 300);
+                };
+              }, 150);
+            }, Delay);
+          }
+          setTimeout(() => Buttons.forEach(b => b.disabled = false), 900);
+        }).catch(e => console.error("Error:", e));
     });
   });
+
+  
 });
 
 function closeResults() {
