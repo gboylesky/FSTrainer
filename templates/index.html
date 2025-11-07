@@ -369,26 +369,24 @@ footer {
   gap: 12px;
 }
 
-/* -------- Remove padding/margin for consistent alignment -------- */
-/* Remove side padding for slot banner to make it full width */
-.row:has(.slot-banner) {
-  padding-left: 0 !important;
-  padding-right: 0 !important;
+/* -------- Consistent side alignment for all sections -------- */
+.row,
+.image-wrapper {
+  padding-left: calc(var(--gutter) + env(safe-area-inset-left, 0));
+  padding-right: calc(var(--gutter) + env(safe-area-inset-right, 0));
+  box-sizing: border-box;
 }
 
+/* Make all rows align evenly (no extra margin offsets) */
 .mode-row,
 .category-row {
-  padding-left: 0 !important;
-  padding-right: 0 !important;
+  margin-left: 0;
+  margin-right: 0;
 }
 
-.category-row {
-  padding-left: 0 !important;
-  padding-right: 0 !important;
-}
-
+/* Keep toggle group properly aligned within its row */
 .toggle-group {
-  margin-left: 0 !important;
+  margin-left: 0;
 }
 
 /* Make the label turn green when active */
