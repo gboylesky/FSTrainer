@@ -580,10 +580,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const appTitle = document.querySelector("h1");
   const catRandoms = document.getElementById("cat-randoms");
   const catBlocks = document.getElementById("cat-blocks");
-  // --- Test slider handler (works in browser + PWA) ---   
   const testToggle = document.getElementById("test-mode");
   const testLabel = document.getElementById("test-label");
 
+  // --- Test slider handler ---
   function updateTestModeState() {
     const isTestMode = testToggle.checked;
     fetch("/SetTestMode", {
@@ -603,14 +603,10 @@ document.addEventListener("DOMContentLoaded", () => {
   function updateNoHintAvailability() {
     const noHintToggle = document.getElementById("no-hint");
     const hintLabel = document.getElementById("hint-label");
-    const testToggle = document.getElementById("test-mode");
 
     if (!testToggle.checked) {
-      // Turn off No Hint when Test is deselected
       if (noHintToggle.checked) {
         noHintToggle.checked = false;
-
-        // Tell backend to switch NoHint off
         fetch("/SetNoHint", {
           method: "POST",
           cache: "no-store",
@@ -618,9 +614,7 @@ document.addEventListener("DOMContentLoaded", () => {
         })
         .then(r => r.json())
         .then(({ img_data }) => {
-          // Refresh the image according to the current Letter/Name mode
           if (img_data && img_data.length > 0) {
-            const Img = document.getElementById("formation-image");
             Img.classList.add("fade-out");
             setTimeout(() => {
               Img.src = "data:image/png;base64," + img_data;
@@ -634,13 +628,10 @@ document.addEventListener("DOMContentLoaded", () => {
         })
         .catch(e => console.error("Error resetting No Hint:", e));
       }
-
-      // Disable No Hint slider visually
       noHintToggle.disabled = true;
       hintLabel.style.opacity = "0.5";
       hintLabel.style.pointerEvents = "none";
     } else {
-      // Enable No Hint when Test is active
       noHintToggle.disabled = false;
       hintLabel.style.opacity = "1";
       hintLabel.style.pointerEvents = "auto";
@@ -653,11 +644,7 @@ document.addEventListener("DOMContentLoaded", () => {
     updateNoHintAvailability();
 
     if (isTestMode) {
-      // --- TEST MODE ACTIVATED ---
-      // Clear all button highlights
       Buttons.forEach(b => b.classList.remove("selected"));
-
-      // Fetch a new random image (same as app startup in Test mode)
       fetch("/Reset", { method: "POST" })
         .then(r => r.json())
         .then(data => {
@@ -673,17 +660,13 @@ document.addEventListener("DOMContentLoaded", () => {
               };
             }, 150);
           }
-          // Reset progress display
           if (ProgInline) ProgInline.textContent = `(${data.progress} of ${data.total})`;
           if (ProgBar) ProgBar.style.width = `${(data.progress / data.total) * 100}%`;
         })
         .catch(e => console.error("Error resetting for Test mode:", e));
-
     } else {
-      // --- REVIEW MODE ACTIVATED (default to A.png) ---
       const firstBtn = document.querySelector('#GuessForm button[value="A"]');
       Buttons.forEach(b => b.classList.remove("selected"));
-
       if (firstBtn) {
         firstBtn.classList.add("selected");
         const mode = modeLetter.checked ? "Letter" : "Name";
@@ -695,14 +678,10 @@ document.addEventListener("DOMContentLoaded", () => {
             Img.classList.remove("fade-out");
             Img.classList.add("fade-in");
             setTimeout(() => Img.classList.remove("fade-in"), 300);
-
-            // ✅ Ensure grid unlocked and A shown
             setGridLocked(false);
           };
         }, 150);
       }
-
-      // Reset progress and grey out heading
       ProgInline.textContent = "(0 of 16)";
       ProgBar.style.width = "0%";
       const progressHeading = document.getElementById("progressHeading");
@@ -711,21 +690,19 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // --- No Hint slider handler (works in browser + PWA) ---
+  // --- No Hint slider handler ---
   const noHintToggle = document.getElementById("no-hint");
   const hintLabel = document.getElementById("hint-label");
 
   function updateNoHintState() {
     const isNoHint = noHintToggle.checked;
-
     fetch("/SetNoHint", {
       method: "POST",
-      cache: "no-store",        // <-- ADD THIS LINE
+      cache: "no-store",
       body: new URLSearchParams({ no_hint: isNoHint })
     })
     .then(r => r.json())
     .then(({ img_data }) => {
-      const Img = document.getElementById("formation-image");
       if (img_data && img_data.length > 0) {
         Img.classList.add("fade-out");
         setTimeout(() => {
@@ -743,14 +720,11 @@ document.addEventListener("DOMContentLoaded", () => {
     .catch(e => console.error("Error toggling No Hint:", e));
   }
 
-  // Attach both events to make it reliable on all devices
   noHintToggle.addEventListener("click", updateNoHintState);
   noHintToggle.addEventListener("change", updateNoHintState);
-
-  // --- Enable/Disable NoHint slider  ---
   updateNoHintAvailability();
 
-  // --- Default state on app load ---
+  // --- Default state on load ---
   if (!testToggle.checked) {
     const firstBtn = document.querySelector('#GuessForm button[value="A"]');
     if (firstBtn) {
@@ -779,11 +753,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function updateAppTitle() {
-    if (catBlocks.checked) {
-      appTitle.textContent = "FS Blocks Trainer";
-    } else {
-      appTitle.textContent = "FS Randoms Trainer";
-    }
+    appTitle.textContent = catBlocks.checked ? "FS Blocks Trainer" : "FS Randoms Trainer";
   }
 
   catRandoms.addEventListener("change", () => {
@@ -810,20 +780,17 @@ document.addEventListener("DOMContentLoaded", () => {
       if (img_data) Img.src = "data:image/png;base64," + img_data;
     });
   });
-});
 
-  // --- Button click logic ---
+  // --- ✅ Button click logic (inside DOMContentLoaded now) ---
   Buttons.forEach(btn => {
     btn.addEventListener("click", () => {
       const Guess = btn.dataset.guess;
       const isTestMode = document.getElementById("test-mode").checked;
-      const Img = document.getElementById("formation-image");
       const modeLetter = document.getElementById("mode-letter");
 
-      //  Immediately lock the grid visually
       setGridLocked(true);
 
-      // === REVIEW MODE ===
+      // REVIEW MODE
       if (!isTestMode) {
         Buttons.forEach(b => b.classList.remove("selected"));
         btn.classList.add("selected");
@@ -845,7 +812,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      // === TEST MODE ===
+      // TEST MODE
       const currentSeq = ++sequence;
       fetch("/Guess", { method: "POST", body: new URLSearchParams({ guess: Guess }) })
         .then(r => r.json())
@@ -889,6 +856,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
   });
+});
 
 // --- Ensure default image and button A visible on startup ---
 window.addEventListener("load", () => {
