@@ -821,6 +821,16 @@ document.addEventListener("DOMContentLoaded", () => {
           if (ProgInline) ProgInline.textContent = `(${data.progress} of ${data.total})`;
           if (ProgBar) ProgBar.style.width = `${(data.progress / data.total) * 100}%`;
 
+          // ✅ Detect end of round — show results modal
+          if (data.done) {
+            const modal = document.getElementById("resultsModal");
+            modal.style.display = "flex";
+            // Update modal text
+            modal.querySelector("p[style*='lime']").textContent = `✅ Correct: ${data.correct}`;
+            modal.querySelector("p[style*='red']").textContent = `❌ Incorrect: ${data.incorrect}`;
+            return; // stop here so no image fade happens
+          }
+
           let overlay = document.getElementById("overlay");
           if (overlay) overlay.remove();
           overlay = document.createElement("div");
@@ -873,19 +883,32 @@ window.addEventListener("load", () => {
 
 function closeResults() {
   const currentSeq = ++sequence;
-  fetch("/Reset", { method: "POST" }).then(r => r.json()).then(data => {
-    if (currentSeq !== sequence) return;
-    const Img = document.getElementById("formation-image");
-    Img.src = "data:image/png;base64," + data.img_data;
-    Img.classList.add("fade-in");
-    setTimeout(() => Img.classList.remove("fade-in"), 300);
-    const ProgInline = document.querySelector(".progress-inline");
-    const ProgBar = document.querySelector(".progress-bar");
-    ProgInline.textContent = `(${data.progress} of ${data.total})`;
-    ProgBar.style.width = `${(data.progress / data.total) * 100}%`;
-    document.getElementById("resultsModal").style.display = "none";
-  }).catch(e => console.error("Error:", e));
+  fetch("/Reset", { method: "POST" })
+    .then(r => r.json())
+    .then(data => {
+      if (currentSeq !== sequence) return;
+      const Img = document.getElementById("formation-image");
+      const ProgInline = document.querySelector(".progress-inline");
+      const ProgBar = document.querySelector(".progress-bar");
+
+      if (data.img_data && data.img_data.length > 0) {
+        Img.src = "data:image/png;base64," + data.img_data;
+      } else {
+        const modeLetter = document.getElementById("mode-letter");
+        const folder = modeLetter.checked ? "Letter" : "Name";
+        Img.src = `/static/Randoms/${folder}/A.png`;
+      }
+
+      Img.classList.add("fade-in");
+      setTimeout(() => Img.classList.remove("fade-in"), 300);
+
+      ProgInline.textContent = `(${data.progress} of ${data.total})`;
+      ProgBar.style.width = `${(data.progress / data.total) * 100}%`;
+      document.getElementById("resultsModal").style.display = "none";
+    })
+    .catch(e => console.error("Error:", e));
 }
+
 </script>
 </body>
 </html>

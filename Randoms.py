@@ -205,13 +205,18 @@ def Guess():
         if len(state["Remaining"]) == 1:
             state["Remaining"].remove(state["Current"])
             save_state(state)
+            img_data = GetImageBase64(state["Current"], state)
             return jsonify({
                 "done": True,
+                "img_data": img_data,
+                "msg": "✅ All Complete!",
+                "color": "lime",
                 "correct": state["Correct"],
                 "incorrect": state["Incorrect"],
                 "progress": state["Progress"],
                 "total": len(Labels)
-            })
+    })
+
         NextImage(state)
     else:
         msg = "❌ Try Again"
@@ -247,6 +252,10 @@ def Reset():
     }
     SetFirstImage(state)
     img_data = GetImageBase64(state["Current"], state)
+    if not img_data:
+        # fallback to 'A.png' if something is missing
+        img_data = GetImageBase64("A", state)
+        state["Current"] = "A"
     save_state(state)
     return jsonify({
         "img_data": img_data,
