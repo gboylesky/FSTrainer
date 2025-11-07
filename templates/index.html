@@ -800,11 +800,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // --- REVIEW MODE: When Test is OFF, just show image and mark button ---
       if (!isTestMode) {
-        // Disable all buttons immediately to prevent spam-clicks
-        Buttons.forEach(b => b.disabled = true);
+        // Immediately disable the entire grid
+        const buttonGrid = document.getElementById("GuessForm");
+        buttonGrid.style.pointerEvents = "none";  // disables all clicks instantly
+        Buttons.forEach(b => b.classList.remove("selected"));  // clear any highlight
 
-        // Remove previous highlight
-        Buttons.forEach(b => b.classList.remove("selected"));
+        // Highlight the clicked button (visual feedback)
         btn.classList.add("selected");
 
         // Determine which image to load
@@ -815,22 +816,25 @@ document.addEventListener("DOMContentLoaded", () => {
         // Fade out current image
         Img.classList.add("fade-out");
 
-        // Load the new image
-        const NewSrc = `/static/Randoms/${folder}/${imgName}`;
+        // Load new image
+        const newSrc = `/static/Randoms/${folder}/${imgName}`;
         setTimeout(() => {
-          Img.src = NewSrc;
+          Img.src = newSrc;
         }, 100);
 
-        // Wait until the new image finishes loading, then fade in and re-enable buttons
+        // Wait until the new image finishes loading
         Img.onload = () => {
           Img.classList.remove("fade-out");
           Img.classList.add("fade-in");
           setTimeout(() => Img.classList.remove("fade-in"), 300);
-          Buttons.forEach(b => b.disabled = false);  // re-enable here
+
+          // Re-enable the grid once the image is fully rendered
+          buttonGrid.style.pointerEvents = "auto";
         };
 
         return; // exit early — don't do guess logic
       }
+
 
       // --- NORMAL TEST MODE (existing logic below) ---
       Buttons.forEach(b => b.disabled = true);
