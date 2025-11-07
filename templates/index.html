@@ -189,7 +189,12 @@ main.content {
   word-break: keep-all;
 }
 .buttons button:hover { background:#444; }
-.buttons button:active { background:#555; transform:scale(0.97); }
+.buttons button:active {
+  background: #4caf50;       /* flash green when pressed */
+  border-color: #4caf50;
+  color: white;
+  transform: scale(0.97);
+}
 
 /* --- Highlight the currently selected button in review mode (Test OFF) --- */
 button.selected {
