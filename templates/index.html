@@ -800,10 +800,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // --- REVIEW MODE: When Test is OFF, just show image and mark button ---
       if (!isTestMode) {
+        // Disable all buttons immediately to prevent spam-clicks
+        Buttons.forEach(b => b.disabled = true);
+
         // Remove previous highlight
         Buttons.forEach(b => b.classList.remove("selected"));
-
-        // Highlight the clicked button
         btn.classList.add("selected");
 
         // Determine which image to load
@@ -811,8 +812,22 @@ document.addEventListener("DOMContentLoaded", () => {
         const imgName = btn.value + ".png";
         const folder = mode === "Letter" ? "Letter" : "Name";
 
-        // Display the chosen image directly (no backend call)
-        Img.src = `/static/Randoms/${folder}/${imgName}`;
+        // Fade out current image
+        Img.classList.add("fade-out");
+
+        // Load the new image
+        const NewSrc = `/static/Randoms/${folder}/${imgName}`;
+        setTimeout(() => {
+          Img.src = NewSrc;
+        }, 100);
+
+        // Wait until the new image finishes loading, then fade in and re-enable buttons
+        Img.onload = () => {
+          Img.classList.remove("fade-out");
+          Img.classList.add("fade-in");
+          setTimeout(() => Img.classList.remove("fade-in"), 300);
+          Buttons.forEach(b => b.disabled = false);  // re-enable here
+        };
 
         return; // exit early — don't do guess logic
       }
