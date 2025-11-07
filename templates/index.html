@@ -614,19 +614,33 @@ document.addEventListener("DOMContentLoaded", () => {
       body: new URLSearchParams({ test_mode: isTestMode })
     })
       .then(r => r.json())
-      .then(data => {
-        if (data.img_data) {
-          Img.classList.add("fade-out");
-          setTimeout(() => {
-            Img.src = "data:image/png;base64," + data.img_data;
-            Img.onload = () => {
-              Img.classList.remove("fade-out");
-              Img.classList.add("fade-in");
-              setTimeout(() => Img.classList.remove("fade-in"), 300);
-              setGridLocked(false);
-            };
-          }, 150);
+      .then(() => {
+        if (isTestMode) {
+          // Immediately fetch a random image for new Test session
+          fetch("/Reset", { method: "POST" })
+            .then(r => r.json())
+            .then(data => {
+              if (data.img_data) {
+                Img.classList.add("fade-out");
+                setTimeout(() => {
+                  Img.src = "data:image/png;base64," + data.img_data;
+                  Img.onload = () => {
+                    Img.classList.remove("fade-out");
+                    Img.classList.add("fade-in");
+                    setTimeout(() => Img.classList.remove("fade-in"), 300);
+                    setGridLocked(false);
+                  };
+                }, 150);
+              } else setGridLocked(false);
+            });
         } else {
+          // When turning Test off (back to review mode)
+          const firstBtn = document.querySelector('#GuessForm button[value="A"]');
+          if (firstBtn) {
+            firstBtn.classList.add("selected");
+            const mode = modeLetter.checked ? "Letter" : "Name";
+            Img.src = `/static/Randoms/${mode}/${firstBtn.value}.png`;
+          }
           setGridLocked(false);
         }
       })
@@ -634,8 +648,7 @@ document.addEventListener("DOMContentLoaded", () => {
         console.error("Error toggling Test mode:", e);
         setGridLocked(false);
       });
-  });
-
+    });    
 
   /* --- existing handlers (unchanged) --- */
   // everything above your Buttons.forEach(btn => { ... }) stays identical
