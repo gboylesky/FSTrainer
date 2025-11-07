@@ -812,93 +812,83 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-Buttons.forEach(btn => {
-  btn.addEventListener("click", () => {
-    const Guess = btn.dataset.guess;
-    const isTestMode = document.getElementById("test-mode").checked;
-    const Img = document.getElementById("formation-image");
-    const modeLetter = document.getElementById("mode-letter");
+  // --- Button click logic ---
+  Buttons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const Guess = btn.dataset.guess;
+      const isTestMode = document.getElementById("test-mode").checked;
+      const Img = document.getElementById("formation-image");
+      const modeLetter = document.getElementById("mode-letter");
 
-    //  Immediately lock the grid visually
-    setGridLocked(true);
+      //  Immediately lock the grid visually
+      setGridLocked(true);
 
-    // === REVIEW MODE (Test OFF) ===
-    if (!isTestMode) {
-      Buttons.forEach(b => b.classList.remove("selected"));
-      btn.classList.add("selected");
+      // === REVIEW MODE ===
+      if (!isTestMode) {
+        Buttons.forEach(b => b.classList.remove("selected"));
+        btn.classList.add("selected");
 
-      const mode = modeLetter.checked ? "Letter" : "Name";
-      const folder = mode === "Letter" ? "Letter" : "Name";
-      const newSrc = `/static/Randoms/${folder}/${btn.value}.png`;
+        const mode = modeLetter.checked ? "Letter" : "Name";
+        const folder = mode === "Letter" ? "Letter" : "Name";
+        const newSrc = `/static/Randoms/${folder}/${btn.value}.png`;
 
-      Img.classList.add("fade-out");
-      setTimeout(() => {
-        Img.src = newSrc;
-        Img.onload = () => {
-          Img.classList.remove("fade-out");
-          Img.classList.add("fade-in");
-          setTimeout(() => Img.classList.remove("fade-in"), 300);
+        Img.classList.add("fade-out");
+        setTimeout(() => {
+          Img.src = newSrc;
+          Img.onload = () => {
+            Img.classList.remove("fade-out");
+            Img.classList.add("fade-in");
+            setTimeout(() => Img.classList.remove("fade-in"), 300);
+            setTimeout(() => setGridLocked(false), 300);
+          };
+        }, 100);
+        return;
+      }
 
-          // Unlock grid only after image fully loads
-          setTimeout(() => setGridLocked(false), 300);
-        };
-      }, 100);
+      // === TEST MODE ===
+      const currentSeq = ++sequence;
+      fetch("/Guess", { method: "POST", body: new URLSearchParams({ guess: Guess }) })
+        .then(r => r.json())
+        .then(data => {
+          if (currentSeq !== sequence) return;
+          if (ProgInline) ProgInline.textContent = `(${data.progress} of ${data.total})`;
+          if (ProgBar) ProgBar.style.width = `${(data.progress / data.total) * 100}%`;
 
-      return;
-    }
+          let overlay = document.getElementById("overlay");
+          if (overlay) overlay.remove();
+          overlay = document.createElement("div");
+          overlay.id = "overlay";
+          overlay.className = "overlay";
+          overlay.style.color = data.color;
+          overlay.textContent = data.msg;
+          document.querySelector(".image-wrapper").appendChild(overlay);
 
-    // === TEST MODE ===
-    const currentSeq = ++sequence;
-    fetch("/Guess", { method: "POST", body: new URLSearchParams({ guess: Guess }) })
-      .then(r => r.json())
-      .then(data => {
-        if (currentSeq !== sequence) return;
-
-        if (ProgInline) ProgInline.textContent = `(${data.progress} of ${data.total})`;
-        if (ProgBar) ProgBar.style.width = `${(data.progress / data.total) * 100}%`;
-
-        // Create overlay
-        let overlay = document.getElementById("overlay");
-        if (overlay) overlay.remove();
-        overlay = document.createElement("div");
-        overlay.id = "overlay";
-        overlay.className = "overlay";
-        overlay.style.color = data.color;
-        overlay.textContent = data.msg;
-        document.querySelector(".image-wrapper").appendChild(overlay);
-
-        // If correct → wait for overlay to fade, then change image and unlock after image load
-        if (data.color !== "red") {
-          const Delay = 800; // overlay fade duration
-          setTimeout(() => {
-            if (currentSeq !== sequence) return;
-            Img.classList.add("fade-out");
+          if (data.color !== "red") {
+            const Delay = 800;
             setTimeout(() => {
               if (currentSeq !== sequence) return;
-              Img.src = "data:image/png;base64," + data.img_data;
-              Img.onload = () => {
-                Img.classList.remove("fade-out");
-                Img.classList.add("fade-in");
-                setTimeout(() => Img.classList.remove("fade-in"), 300);
-
-                // 🔓 Unlock grid after image transition completes
-                setTimeout(() => setGridLocked(false), 300);
-              };
-            }, 150);
-          }, Delay);
-        } else {
-          // ❌ Wrong answer → wait for overlay to finish before unlocking
-          setTimeout(() => setGridLocked(false), 800);
-        }
-
-        // End of Test mode logic
-      })
-      .catch(e => {
-        console.error("Error:", e);
-        setGridLocked(false);
-      });
+              Img.classList.add("fade-out");
+              setTimeout(() => {
+                if (currentSeq !== sequence) return;
+                Img.src = "data:image/png;base64," + data.img_data;
+                Img.onload = () => {
+                  Img.classList.remove("fade-out");
+                  Img.classList.add("fade-in");
+                  setTimeout(() => Img.classList.remove("fade-in"), 300);
+                  setTimeout(() => setGridLocked(false), 300);
+                };
+              }, 150);
+            }, Delay);
+          } else {
+            setTimeout(() => setGridLocked(false), 800);
+          }
+        })
+        .catch(e => {
+          console.error("Error:", e);
+          setGridLocked(false);
+        });
+    });
   });
-});
 
 // --- Ensure default image and button A visible on startup ---
 window.addEventListener("load", () => {
@@ -910,7 +900,6 @@ window.addEventListener("load", () => {
   const folder = modeLetter.checked ? "Letter" : "Name";
   Img.src = `/static/Randoms/${folder}/A.png`;
 
-  // Unlock the grid once the first image is fully loaded
   Img.onload = () => setGridLocked(false);
 });
 
