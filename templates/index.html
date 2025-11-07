@@ -582,6 +582,38 @@ document.addEventListener("DOMContentLoaded", () => {
   const catBlocks = document.getElementById("cat-blocks");
   const testToggle = document.getElementById("test-mode");
 
+  testToggle.addEventListener("change", () => {
+    const isTestMode = testToggle.checked;
+    setGridLocked(true); // prevent clicks while reloading
+
+    fetch("/SetTestMode", {
+      method: "POST",
+      body: new URLSearchParams({ test_mode: isTestMode })
+    })
+      .then(r => r.json())
+      .then(data => {
+        if (data.img_data) {
+          Img.classList.add("fade-out");
+          setTimeout(() => {
+            Img.src = "data:image/png;base64," + data.img_data;
+            Img.onload = () => {
+              Img.classList.remove("fade-out");
+              Img.classList.add("fade-in");
+              setTimeout(() => Img.classList.remove("fade-in"), 300);
+              setGridLocked(false);
+            };
+          }, 150);
+        } else {
+          setGridLocked(false);
+        }
+      })
+      .catch(e => {
+        console.error("Error toggling Test mode:", e);
+        setGridLocked(false);
+      });
+  });
+
+
   /* --- existing handlers (unchanged) --- */
   // everything above your Buttons.forEach(btn => { ... }) stays identical
   // ↓↓↓
@@ -599,19 +631,15 @@ document.addEventListener("DOMContentLoaded", () => {
         // REVIEW MODE
         Buttons.forEach(b => b.classList.remove("selected"));
         btn.classList.add("selected");
-
         const mode = modeLetter.checked ? "Letter" : "Name";
         const folder = mode === "Letter" ? "Letter" : "Name";
         const newSrc = `/static/Randoms/${folder}/${btn.value}.png`;
-
         Img.classList.add("fade-out");
         setTimeout(() => { Img.src = newSrc; }, 100);
-
         Img.onload = () => {
           Img.classList.remove("fade-out");
           Img.classList.add("fade-in");
           setTimeout(() => Img.classList.remove("fade-in"), 300);
-          // Unlock when fade-in finishes
           setTimeout(() => setGridLocked(false), 300);
         };
         return;
@@ -619,26 +647,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // TEST MODE
       const currentSeq = ++sequence;
-
       fetch("/Guess", { method: "POST", body: new URLSearchParams({ guess: Guess }) })
         .then(r => r.json())
         .then(data => {
           if (currentSeq !== sequence) return;
-
           if (ProgInline) ProgInline.textContent = `(${data.progress} of ${data.total})`;
           if (ProgBar) ProgBar.style.width = `${(data.progress / data.total) * 100}%`;
-
-          if (data.done) {
-            setTimeout(() => {
-              if (currentSeq !== sequence) return;
-              document.getElementById("resultsModal").style.display = "flex";
-              const m = document.querySelector(".modal-content");
-              m.querySelector("p:nth-child(3)").textContent = `✅ Correct: ${data.correct}`;
-              m.querySelector("p:nth-child(4)").textContent = `❌ Incorrect: ${data.incorrect}`;
-              setGridLocked(false);
-            }, 400);
-            return;
-          }
 
           let overlay = document.getElementById("overlay");
           if (overlay) overlay.remove();
@@ -666,7 +680,6 @@ document.addEventListener("DOMContentLoaded", () => {
             }, Delay);
           }
 
-          // Unlock grid after fade/overlay (~900 ms)
           setTimeout(() => setGridLocked(false), 900);
         })
         .catch(e => console.error("Error:", e));
