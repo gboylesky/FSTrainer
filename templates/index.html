@@ -582,6 +582,29 @@ document.addEventListener("DOMContentLoaded", () => {
   const catBlocks = document.getElementById("cat-blocks");
   const testToggle = document.getElementById("test-mode");
 
+  // --- DEFAULT STATE ON APP LOAD ---
+  const firstBtn = document.querySelector('#GuessForm button[value="A"]');
+  if (!testToggle.checked && firstBtn) {
+    // App starts in REVIEW mode (Test off) → show A.png and highlight A
+    firstBtn.classList.add("selected");
+    const mode = modeLetter.checked ? "Letter" : "Name";
+    const folder = mode === "Letter" ? "Letter" : "Name";
+    Img.src = `/static/Randoms/${folder}/A.png`;
+  } else if (testToggle.checked) {
+    // App starts in TEST mode → fetch initial random image
+    fetch("/SetTestMode", {
+      method: "POST",
+      body: new URLSearchParams({ test_mode: true })
+    })
+      .then(r => r.json())
+      .then(data => {
+        if (data.img_data) {
+          Img.src = "data:image/png;base64," + data.img_data;
+        }
+      })
+      .catch(e => console.error("Error setting initial Test mode:", e));
+  }
+
   testToggle.addEventListener("change", () => {
     const isTestMode = testToggle.checked;
     setGridLocked(true); // prevent clicks while reloading
