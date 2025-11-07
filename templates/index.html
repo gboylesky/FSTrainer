@@ -810,8 +810,8 @@ document.addEventListener("DOMContentLoaded", () => {
       if (img_data) Img.src = "data:image/png;base64," + img_data;
     });
   });
+});
 
- // --- New button grid lock functionality --// 
 Buttons.forEach(btn => {
   btn.addEventListener("click", () => {
     const Guess = btn.dataset.guess;
@@ -819,7 +819,7 @@ Buttons.forEach(btn => {
     const Img = document.getElementById("formation-image");
     const modeLetter = document.getElementById("mode-letter");
 
-    // 🔒 Immediately lock the grid visually
+    //  Immediately lock the grid visually
     setGridLocked(true);
 
     // === REVIEW MODE (Test OFF) ===
@@ -839,7 +839,7 @@ Buttons.forEach(btn => {
           Img.classList.add("fade-in");
           setTimeout(() => Img.classList.remove("fade-in"), 300);
 
-          // 🔓 Unlock grid only after image fully loads
+          // Unlock grid only after image fully loads
           setTimeout(() => setGridLocked(false), 300);
         };
       }, 100);
@@ -867,7 +867,7 @@ Buttons.forEach(btn => {
         overlay.textContent = data.msg;
         document.querySelector(".image-wrapper").appendChild(overlay);
 
-        // ✅ If correct → wait for overlay to fade, then change image and unlock after image load
+        // If correct → wait for overlay to fade, then change image and unlock after image load
         if (data.color !== "red") {
           const Delay = 800; // overlay fade duration
           setTimeout(() => {
@@ -898,6 +898,20 @@ Buttons.forEach(btn => {
         setGridLocked(false);
       });
   });
+});
+
+// --- Ensure default image and button A visible on startup ---
+window.addEventListener("load", () => {
+  const firstBtn = document.querySelector('#GuessForm button[value="A"]');
+  if (firstBtn) firstBtn.classList.add("selected");
+
+  const Img = document.getElementById("formation-image");
+  const modeLetter = document.getElementById("mode-letter");
+  const folder = modeLetter.checked ? "Letter" : "Name";
+  Img.src = `/static/Randoms/${folder}/A.png`;
+
+  // Unlock the grid once the first image is fully loaded
+  Img.onload = () => setGridLocked(false);
 });
 
 function closeResults() {
