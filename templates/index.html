@@ -163,15 +163,17 @@ main.content {
 }
 
 /* -------- Button styles -------- */
+/* --- Unified alignment for button grid --- */
 .buttons {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 6px;
   flex: 0 0 auto;
-  padding: 0;
-  width: calc(100% - 14px);
-  margin-left: 6px;
+  width: 100%;
+  margin: 0;
   box-sizing: border-box;
+  padding-left: calc(var(--gutter) + env(safe-area-inset-left, 0));
+  padding-right: calc(var(--gutter) + env(safe-area-inset-right, 0));
 }
 .buttons button {
   height: 36px;
@@ -260,14 +262,6 @@ footer {
 .progress-inline {
   font-weight:bold;
   margin-left:6px;
-}
-
-/* --- Fine-tuned width for button grid to visually match top section --- */
-.buttons {
-  width: calc(100% + var(--gutter));
-  margin-left: calc(var(--gutter) / -2);
-  margin-right: calc(var(--gutter) / -2);
-  box-sizing: border-box;
 }
 
 /* Smooth transition for greying out Progress heading */
