@@ -262,11 +262,11 @@ footer {
   margin-left:6px;
 }
 
-/* --- Slightly widen buttons --- */
+/* --- Fine-tuned width for button grid to visually match top section --- */
 .buttons {
-  width: calc(100% + (var(--gutter) * 2));
-  margin-left: calc(var(--gutter) * -1);
-  margin-right: calc(var(--gutter) * -1);
+  width: calc(100% + var(--gutter));
+  margin-left: calc(var(--gutter) / -2);
+  margin-right: calc(var(--gutter) / -2);
   box-sizing: border-box;
 }
 
