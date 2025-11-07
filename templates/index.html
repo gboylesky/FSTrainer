@@ -262,6 +262,15 @@ footer {
   margin-left:6px;
 }
 
+/* --- Slightly widen buttons + progress bar to match top section --- */
+.buttons,
+.progress-bar-container {
+  width: calc(100% + (var(--gutter) * 2));
+  margin-left: calc(var(--gutter) * -1);
+  margin-right: calc(var(--gutter) * -1);
+  box-sizing: border-box;
+}
+
 /* Smooth transition for greying out Progress heading */
 #progressHeading[style*="opacity: 0.5"] {
   transition: opacity 0.2s ease;
