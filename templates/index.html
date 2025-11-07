@@ -673,8 +673,15 @@ document.addEventListener("DOMContentLoaded", () => {
         const folder = mode === "Letter" ? "Letter" : "Name";
         Img.classList.add("fade-out");
         setTimeout(() => {
-          Img.src = `/static/Randoms/${folder}/A.png`;
-          Img.onload = () => {
+            const imgUrl = `/static/Randoms/${folder}/A.png`;
+            fetch(imgUrl, { method: "HEAD" })
+              .then(r => {
+                Img.src = r.ok ? imgUrl : "/static/Randoms/Letter/A.png";
+              })
+              .catch(() => {
+                Img.src = "/static/Randoms/Letter/A.png";
+              });
+            Img.onload = () => {
             Img.classList.remove("fade-out");
             Img.classList.add("fade-in");
             setTimeout(() => Img.classList.remove("fade-in"), 300);
