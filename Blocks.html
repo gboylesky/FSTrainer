@@ -141,7 +141,7 @@ main.content {
   height: auto;
   object-fit: contain;
   object-position: center bottom;
-  transition: opacity 0.3s ease-in-out;
+  transition: opacity 0.15s ease-in-out;
 }
 .image-wrapper img.fade-out { opacity: 0; }
 .image-wrapper img.fade-in { opacity: 1; }
@@ -809,7 +809,7 @@ function loadImageForBlock(blockNum, stage = "a", withFade = true) {
       Img.classList.add("fade-in");
       setTimeout(() => Img.classList.remove("fade-in"), 300);
     };
-  }, 100);
+  }, 50);
 }
 
 function getTotalAllowed() {
