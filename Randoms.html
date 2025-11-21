@@ -134,7 +134,7 @@ main.content {
   height: auto;
   object-fit: contain;
   object-position: center bottom;
-  transition: opacity 0.3s ease-in-out;
+  transition: opacity 0.15s ease-in-out;
 }
 .image-wrapper img.fade-out { opacity: 0; }
 .image-wrapper img.fade-in { opacity: 1; }
@@ -153,7 +153,7 @@ main.content {
   align-items: center;
   gap: 6px;
 }
-@keyframes fadeout { 0%,80%{opacity:1;} 100%{opacity:0;} }
+@keyframes fadeout { 0%,50%{opacity:1;} 100%{opacity:0;} }
 
 @media screen and (max-width: 767px) {
   .overlay {
@@ -642,7 +642,7 @@ function loadImageForCurrent(withFade = true) {
       Img.classList.add("fade-in");
       setTimeout(() => Img.classList.remove("fade-in"), 300);
     };
-  }, 150);
+  }, 50);
 }
 
 function updateProgressUI() {
