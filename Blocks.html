@@ -1,0 +1,1237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#1e1e1e">
+<link rel="manifest" href="/static/manifest.json">
+<link rel="icon" type="image/png" href="/static/favicon.png">
+<title>FS Blocks Trainer</title>
+
+<style>
+:root {
+  --gutter: 10px;
+  --space-top: 10px;
+  --space-bottom: 5px;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  background-color: #1e1e1e;
+  color: white;
+  font-family: 'Segoe UI', sans-serif;
+  text-align: center;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+body, .app-container, .app-scale-wrapper {
+  width: 100%;
+  height: auto;
+}
+
+.app-scale-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+}
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0);
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.row {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  width: 100%;
+  box-sizing: border-box;
+  padding-left: calc(var(--gutter) + env(safe-area-inset-left, 0));
+  padding-right: calc(var(--gutter) + env(safe-area-inset-right, 0));
+}
+
+h1 {
+  font-size: clamp(24px, 5vw, 42px);
+  margin: 6px 0 4px 0;
+  font-weight: bold;
+}
+
+.slot-banner {
+  height: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.slot-banner img {
+  max-height: 40px;
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+/* -------- Headings (ensure left alignment) -------- */
+h2 {
+  font-size: clamp(22px, 4vw, 32px);
+  margin: 0;
+  padding: 0;
+  line-height: 1;
+  text-align: left;
+  align-self: flex-start;
+  display: block;
+  width: 100%;
+}
+.section-top    { margin-top: var(--space-top); }
+.section-bottom { margin-bottom: var(--space-bottom); }
+
+#block-heading {
+  margin-top: 6px !important;
+  margin-bottom: 6px !important;
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+/* -------- Category toggle (Randoms / Blocks) -------- */
+.category-toggle {
+  margin-top: 8px;
+  margin-bottom: 0px;
+  width: 100%;
+  justify-content: center;
+}
+.category-toggle label {
+  font-size: clamp(22px, 4vw, 32px);
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+}
+@media all and (display-mode: standalone) and (max-width: 767px) {
+  .category-toggle label {
+    height: 46px;
+  }
+}
+
+main.content {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.image-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  position: relative;
+  overflow: hidden;
+  margin: 0;
+  width: 100%;
+}
+.image-wrapper img {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  object-position: center bottom;
+  transition: opacity 0.3s ease-in-out;
+}
+.image-wrapper img.fade-out { opacity: 0; }
+.image-wrapper img.fade-in { opacity: 1; }
+
+.overlay {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  font-size: clamp(28px, 6vw, 50px);
+  font-weight: bold;
+  text-shadow: 0 0 15px rgba(0,0,0,0.9);
+  pointer-events: none;
+  animation: fadeout 0.8s ease-in forwards;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+@keyframes fadeout { 0%,80%{opacity:1;} 100%{opacity:0;} }
+
+/* --- Small top-left overlay showing 1 of 3, 2 of 3 --- */
+.formation-counter {
+  position: absolute;
+  top: 4px;
+  left: 10px;
+  background: rgba(255, 255, 255, 0.8);
+  color: black;
+  font-size: clamp(14px, 3.5vw, 18px);
+  font-weight: bold;
+  padding: 2px 8px;
+  border-radius: 6px;
+  pointer-events: none;
+  user-select: none;
+  z-index: 10;
+}
+
+/* --- Top-right navigation hint text --- */
+.nav-hints {
+  position: absolute;
+  top: 4px;
+  right: 10px;
+  background: rgba(255, 255, 255, 0.8);
+  color: black;
+  font-size: clamp(16px, 4vw, 22px);
+  font-weight: bold;
+  padding: 2px 8px;
+  border-radius: 6px;
+  pointer-events: none;
+  user-select: none;
+  z-index: 10;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.nav-hints .arrow-left,
+.nav-hints .arrow-right {
+  opacity: 1;
+  font-weight: 900;
+  text-shadow: 0 0 1px black;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.nav-hints .arrow-hidden {
+  opacity: 0;
+  visibility: hidden;
+}
+
+@media screen and (max-width: 767px) {
+  .overlay {
+    font-size: clamp(42px, 10vw, 80px);
+    text-shadow: 0 0 25px rgba(0,0,0,1);
+  }
+}
+
+/* -------- Button styles -------- */
+.buttons {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+  flex: 0 0 auto;
+  width: 100%;
+  margin: 0;
+  box-sizing: border-box;
+  padding-left: calc(var(--gutter) + env(safe-area-inset-left, 0));
+  padding-right: calc(var(--gutter) + env(safe-area-inset-right, 0));
+}
+.buttons button {
+  height: 36px;
+  font-size: 16px;
+  border-radius: 6px;
+  background: #333;
+  color: white;
+  border: 2px solid #555;
+  cursor: pointer;
+  padding: 4px 0;
+  white-space: nowrap;
+  line-height: 1.1;
+  word-break: keep-all;
+}
+.buttons button:hover { background:#444; }
+.buttons button:active {
+  background: #4caf50;
+  border-color: #4caf50;
+  color: white;
+  transform: scale(0.97);
+}
+
+/* --- Force all items in button grid to equal height --- */
+.buttons {
+  align-items: stretch;
+}
+
+/* FS-Category buttons placed inside the grid */
+.fs-category-btn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 36px;
+  font-size: 16px;
+  border-radius: 6px;
+  background: #333;
+  color: white;
+  border: 2px solid #555;
+  cursor: pointer;
+  padding: 0;
+  user-select: none;
+  font-weight: bold;
+}
+
+.fs-category-btn input {
+  display: none;
+}
+
+.fs-category-btn:hover {
+  background: #444;
+}
+
+/* Entire A/AA/AAA button turns green when selected */
+.fs-category-btn:has(input:checked) {
+  background: #4caf50 !important;
+  border-color: #4caf50 !important;
+  color: white !important;
+}
+.fs-category-btn:has(input:checked) span {
+  color: white !important;
+}
+
+/* --- Highlight the currently selected button in review mode (Test OFF) --- */
+button.selected {
+  background: #4caf50 !important;
+  color: white !important;
+  border-color: #4caf50 !important;
+  font-weight: bold;
+}
+
+/* Force Randoms/Blocks + Test to align horizontally */
+.row.category-row {
+  flex-direction: row !important;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Force Number + No Hint to align horizontally (legacy, no row in markup now) */
+.row.mode-row {
+  display: flex;   
+  flex-direction: row !important;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* -------- PWA mode font and truncation fix -------- */
+@media all and (display-mode: standalone) {
+  .buttons button {
+    height: 36px;
+    font-size: clamp(14px, 3.5vw, 16px);
+    white-space: nowrap !important;
+  }
+}
+
+/* -------- Desktop full-height fix -------- */
+@media screen and (min-width: 768px) {
+  html, body, .app-container, .app-scale-wrapper {
+    height: 100vh;
+  }
+}
+
+/* -------- Desktop button spacing -------- */
+@media screen and (min-width: 768px) {
+  .buttons {
+    gap: 12px;
+  }
+  .buttons button {
+    height: 70px;
+    font-size: 24px;
+  }
+}
+
+@media screen and (min-width: 768px) {
+  .fs-category-btn {
+    height: 70px;
+    font-size: 24px;
+  }
+}
+
+footer {
+  flex: 0 0 auto;
+  padding-bottom: calc(env(safe-area-inset-bottom,0) + 8px);
+}
+.progress-bar-container {
+  background:#333;
+  border-radius:10px;
+  overflow:hidden;
+  height:25px;
+  width:102%;
+  margin-bottom:8px;
+  margin-left:-1%;
+}
+.progress-bar {
+  height:100%;
+  background:lime;
+  width: 0%;
+  transition:width 0.3s ease-in-out;
+}
+.progress-inline {
+  font-weight:bold;
+  margin-left:6px;
+}
+
+/* Smooth transition for greying out Progress heading */
+#progressHeading[style*="opacity: 0.5"] {
+  transition: opacity 0.2s ease;
+}
+
+/* -------- Modal -------- */
+.modal {
+  display:none;
+  position:fixed;
+  inset:0;
+  justify-content:center;
+  align-items:center;
+  z-index:999;
+}
+.modal-content {
+  background:#2f2f2f;
+  padding:clamp(20px,5vw,40px);
+  border-radius:12px;
+  text-align:center;
+  width:clamp(240px,70%,330px);
+  position:relative;
+}
+.modal-content h2{margin:0 0 15px 0;font-size:clamp(26px,6vw,38px);}
+.modal-content p{font-size:clamp(20px,5vw,30px);margin:10px 0;}
+.close-x {
+  position:absolute;top:10px;right:18px;
+  font-size:clamp(22px,6vw,30px);
+  color:#aaa;font-weight:bold;cursor:pointer;
+}
+.close-x:hover{color:white;}
+
+/* -------- Toggle styling -------- */
+.toggle-group {
+  display: inline-flex;
+  justify-content: flex-start;
+  align-items: center;
+  background: #333;
+  border: 2px solid #555;
+  border-radius: 6px;
+  overflow: hidden;
+  width: fit-content;
+  align-self: flex-start;
+  margin-top: 4px;
+  margin-bottom: 6px;
+  margin-left: -4px;
+}
+.toggle-group label {
+  flex: 1;
+  padding: 6px 15px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: clamp(22px, 4vw, 32px);
+  color: #ccc;
+  background: #333;
+  transition: background 0.2s, color 0.2s;
+}
+.toggle-group input[type="radio"] {
+  display: none;
+}
+.toggle-group input[type="radio"]:checked + label {
+  background: #4caf50;
+  color: white;
+}
+
+/* -------- Inline layout for Number + No Hint (unused now but kept) -------- */
+.mode-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: nowrap;
+  gap: 12px;
+}
+
+.hint-toggle-inline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  white-space: nowrap; 
+  flex-shrink: 0;
+}
+
+.hint-toggle-inline .hint-label {
+  font-size: clamp(18px, 3.5vw, 26px);
+  font-weight: bold;
+  color: #ccc;
+  transition: color 0.3s ease-in-out;
+}
+
+/* Visually dim and block clicks when disabled (legacy) */
+#no-hint:disabled + .slider {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+#no-hint:disabled ~ #hint-label {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+/* -------- Inline layout for Randoms/Blocks + Test -------- */
+.category-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+/* -------- Consistent side alignment for all sections -------- */
+.row,
+.image-wrapper {
+  padding-left: calc(var(--gutter) + env(safe-area-inset-left, 0));
+  padding-right: calc(var(--gutter) + env(safe-area-inset-right, 0));
+  box-sizing: border-box;
+}
+
+/* Make all rows align evenly (no extra margin offsets) */
+.mode-row,
+.category-row {
+  margin-left: 0;
+  margin-right: 0;
+}
+
+/* Keep toggle group properly aligned within its row */
+.toggle-group {
+  margin-left: 0;
+}
+
+/* Make the label turn green when active (legacy, for No Hint) */
+.hint-toggle-inline input:checked ~ .hint-label {
+  color: #4caf50;
+}
+
+/* Adjust switch size for consistency */
+.hint-toggle-inline .switch {
+  position: relative;
+  display: inline-block;
+  width: 46px;
+  height: 26px;
+}
+.hint-toggle-inline .switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.hint-toggle-inline .slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #555;
+  transition: 0.3s;
+  border-radius: 26px;
+}
+.hint-toggle-inline .slider:before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.3s;
+  border-radius: 50%;
+}
+.hint-toggle-inline .switch input:checked + .slider {
+  background-color: #4caf50;
+}
+.hint-toggle-inline .switch input:checked + .slider:before {
+  transform: translateX(20px);
+}
+
+/* --- FINAL FIX: Force Randoms/Blocks toggle to match Letter/Name --- */
+.toggle-group.category-toggle label {
+  height: 20px !important;
+}
+
+/* PWA mode */
+@media all and (display-mode: standalone) {
+  .toggle-group.category-toggle label {
+    height: 26px !important;
+    font-size: 22px !important;
+  }
+}
+
+/* Desktop mode */
+@media screen and (min-width: 768px) {
+  .toggle-group.category-toggle label {
+    height: 42px !important;
+    font-size: 30px !important;
+  }
+}
+
+/* Fully lock the grid when class .locked is applied */
+#GuessForm.locked {
+  pointer-events: none !important;
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+}
+
+/* === FIX: Match Randoms vertical spacing === */
+main.content {
+  justify-content: flex-start !important;
+  gap: 8px;
+}
+
+/* Remove extra margins/padding around the "Showing formation" heading */
+#block-heading {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  line-height: 1.1 !important;
+}
+
+/* Remove extra spacing that the row adds around the heading */
+.row.mode-row {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+/* Align image container tighter (remove bottom gap illusion) */
+.image-wrapper {
+  margin-bottom: 0 !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  align-items: flex-end !important;
+}
+
+/* Remove unwanted gap under Blocks/Randoms toggle row */
+.category-row {
+  gap: 0 !important;
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+.category-toggle {
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+/* Desktop scaling lock (matches Randoms) */
+@media screen and (min-width: 768px) {
+  body {
+    transform: scale(1.0);
+    transform-origin: top center;
+  }
+}
+</style>
+</head>
+
+<body>
+<div class="app-scale-wrapper">
+  <div class="app-container">
+
+    <header class="row">
+      <h1>FS Blocks Trainer</h1>
+    </header>
+
+    <div class="row">
+      <div class="slot-banner">
+        <img src="static/slots.png" alt="Slot Positions">
+      </div>
+    </div>
+
+    <main class="content">
+      <div class="row category-row">
+        <div class="toggle-group category-toggle">
+          <input type="radio" id="cat-blocks" name="category" value="Blocks" checked>
+          <label for="cat-blocks">Blocks</label>
+          <input type="radio" id="cat-randoms" name="category" value="Randoms">
+          <label for="cat-randoms">Randoms</label>
+        </div>
+
+        <div class="hint-toggle-inline">
+          <label class="switch">
+            <input type="checkbox" id="test-mode">
+            <span class="slider"></span>
+          </label>
+          <span class="hint-label" id="test-label">Test</span>
+        </div>
+      </div>
+
+      <div class="image-wrapper" id="image-area">
+        <img id="formation-image" src="static/Blocks/1a.png" alt="Formation">
+        <div class="formation-counter" id="formation-counter">1 of 3</div>
+        <div class="nav-hints" id="nav-hints">
+          <span class="arrow-left arrow-hidden">←</span>
+          <span class="arrow-word">arrow</span>
+          <span class="arrow-right">→</span>
+        </div>
+      </div>
+
+      <form class="buttons row" id="GuessForm">
+        <!-- A / AA / AAA occupy grid positions 1, 2, 3 -->
+        <label class="fs-category-btn">
+          <input type="radio" id="catA" name="fs-category" value="A">
+          <span>A</span>
+        </label>
+        <label class="fs-category-btn">
+          <input type="radio" id="catAA" name="fs-category" value="AA">
+          <span>AA</span>
+        </label>
+        <label class="fs-category-btn">
+          <input type="radio" id="catAAA" name="fs-category" value="AAA" checked>
+          <span>AAA</span>
+        </label>
+
+        <!-- Buttons 1–22 -->
+        <button type="button" value="1">1</button>
+        <button type="button" value="2">2</button>
+        <button type="button" value="3">3</button>
+        <button type="button" value="4">4</button>
+        <button type="button" value="5">5</button>
+        <button type="button" value="6">6</button>
+        <button type="button" value="7">7</button>
+        <button type="button" value="8">8</button>
+        <button type="button" value="9">9</button>
+        <button type="button" value="10">10</button>
+        <button type="button" value="11">11</button>
+        <button type="button" value="12">12</button>
+        <button type="button" value="13">13</button>
+        <button type="button" value="14">14</button>
+        <button type="button" value="15">15</button>
+        <button type="button" value="16">16</button>
+        <button type="button" value="17">17</button>
+        <button type="button" value="18">18</button>
+        <button type="button" value="19">19</button>
+        <button type="button" value="20">20</button>
+        <button type="button" value="21">21</button>
+        <button type="button" value="22">22</button>
+      </form>
+    </main>
+
+    <footer class="row">
+      <h2 id="progressHeading" class="section-top section-bottom">
+        Progress <span class="progress-inline">(0 of 22)</span>
+      </h2>
+      <div class="progress-bar-container"><div class="progress-bar"></div></div>
+    </footer>
+
+  </div>
+</div>
+
+<div class="modal" id="resultsModal">
+  <div class="modal-content">
+    <span class="close-x" onclick="closeResults()">×</span>
+    <h2>Results</h2>
+    <p id="results-correct" style="color:lime;">✅ Correct: 0</p>
+    <p id="results-incorrect" style="color:red;">❌ Incorrect: 0</p>
+  </div>
+</div>
+
+<script>
+let sequence = 0;
+const blockState = {}; // remember which sub-image (a,b,c) is currently shown per block
+
+// Allowed blocks per FS Category
+const allowedBlocks = {
+  "A":  [2,6,7,8,9,19,21],
+  "AA": [1,2,4,6,7,8,9,11,13,14,15,18,19,20,21,22],
+  "AAA":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22]
+};
+
+// Overall state for Test mode
+const State = {
+  TestMode: false,
+  FsCategory: "AAA",
+  Remaining: [],
+  CurrentBlock: null,
+  Correct: 0,
+  Incorrect: 0,
+  Progress: 0,
+  AttemptedWrong: false
+};
+
+function setGridLocked(state) {
+  const grid = document.getElementById("GuessForm");
+  if (!grid) return;
+  if (state) grid.classList.add("locked");
+  else grid.classList.remove("locked");
+}
+
+// --- Navigation Hint Updater ---
+function updateNavHints(stage) {
+  const hints = document.getElementById("nav-hints");
+  if (!hints) return;
+
+  const isDesktop = window.innerWidth >= 768;
+  const word = hints.querySelector(".arrow-word");
+  const left = hints.querySelector(".arrow-left");
+  const right = hints.querySelector(".arrow-right");
+
+  word.textContent = isDesktop ? "arrow" : "swipe";
+
+  left.classList.add("arrow-hidden");
+  right.classList.add("arrow-hidden");
+
+  if (stage === "a") {
+    right.classList.remove("arrow-hidden");
+  } else if (stage === "b") {
+    left.classList.remove("arrow-hidden");
+    right.classList.remove("arrow-hidden");
+  } else if (stage === "c") {
+    left.classList.remove("arrow-hidden");
+  }
+}
+
+function loadImageForBlock(blockNum, stage = "a", withFade = true) {
+  const Img = document.getElementById("formation-image");
+  const counter = document.getElementById("formation-counter");
+  if (!Img) return;
+
+  blockState[blockNum] = stage;
+  const stageNumber = stage === "a" ? 1 : (stage === "b" ? 2 : 3);
+  if (counter) counter.textContent = `${stageNumber} of 3`;
+  updateNavHints(stage);
+
+  const src = `static/Blocks/${blockNum}${stage}.png`;
+
+  if (!withFade) {
+    Img.src = src;
+    return;
+  }
+
+  Img.classList.add("fade-out");
+  setTimeout(() => {
+    Img.src = src;
+    Img.onload = () => {
+      Img.classList.remove("fade-out");
+      Img.classList.add("fade-in");
+      setTimeout(() => Img.classList.remove("fade-in"), 300);
+    };
+  }, 100);
+}
+
+function getTotalAllowed() {
+  const list = allowedBlocks[State.FsCategory] || [];
+  return list.length;
+}
+
+function updateProgressUI() {
+  const ProgInline = document.querySelector(".progress-inline");
+  const ProgBar = document.querySelector(".progress-bar");
+  const total = getTotalAllowed();
+  if (ProgInline) ProgInline.textContent = `(${State.Progress} of ${total})`;
+  if (ProgBar) {
+    const pct = total > 0 ? (State.Progress / total) * 100 : 0;
+    ProgBar.style.width = `${pct}%`;
+  }
+}
+
+function startNewTestRound() {
+  const selectedCat =
+    document.querySelector('input[name="fs-category"]:checked')?.value || "AAA";
+  State.FsCategory = selectedCat;
+
+  const list = allowedBlocks[selectedCat] || [];
+  State.Remaining = [...list];
+  State.Correct = 0;
+  State.Incorrect = 0;
+  State.Progress = 0;
+  State.AttemptedWrong = false;
+
+  // Choose initial block
+  if (State.Remaining.length > 0) {
+    const idx = Math.floor(Math.random() * State.Remaining.length);
+    State.CurrentBlock = State.Remaining[idx];
+  } else {
+    State.CurrentBlock = null;
+  }
+
+  // Clear selected buttons in Test mode
+  const Buttons = document.querySelectorAll("#GuessForm button");
+  Buttons.forEach(b => b.classList.remove("selected"));
+
+  if (State.CurrentBlock !== null) {
+    loadImageForBlock(State.CurrentBlock, "a", true);
+  }
+
+  updateProgressUI();
+
+  const progressHeading = document.getElementById("progressHeading");
+  if (progressHeading) {
+    progressHeading.style.transition = "opacity 0.2s ease, color 0.2s ease";
+    progressHeading.style.opacity = "1";
+    progressHeading.style.color = "white";
+  }
+
+  const oldOverlay = document.getElementById("overlay");
+  if (oldOverlay) oldOverlay.remove();
+
+  setGridLocked(false);
+}
+
+function showResultsModal() {
+  const modal = document.getElementById("resultsModal");
+  const correctP = document.getElementById("results-correct");
+  const incorrectP = document.getElementById("results-incorrect");
+  if (correctP) correctP.textContent = `✅ Correct: ${State.Correct}`;
+  if (incorrectP) incorrectP.textContent = `❌ Incorrect: ${State.Incorrect}`;
+  if (modal) modal.style.display = "flex";
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const Img = document.getElementById("formation-image");
+  const ProgInline = document.querySelector(".progress-inline");
+  const ProgBar = document.querySelector(".progress-bar");
+  const Buttons = document.querySelectorAll("#GuessForm button");
+  const catRandoms = document.getElementById("cat-randoms");
+  const catBlocks = document.getElementById("cat-blocks");
+  const testToggle = document.getElementById("test-mode");
+  const progressHeading = document.getElementById("progressHeading");
+
+  // Default FS Category to AAA
+  const catAAA = document.getElementById("catAAA");
+  if (catAAA) {
+    catAAA.checked = true;
+    State.FsCategory = "AAA";
+  }
+
+  // Category navigation (Randoms / Blocks)
+  if (catRandoms) {
+    catRandoms.addEventListener("change", () => {
+      window.location.href = "Randoms.html";
+    });
+  }
+  if (catBlocks) {
+    catBlocks.addEventListener("change", () => {
+      window.location.href = "Blocks.html";
+    });
+  }
+
+  // FS category change (A / AA / AAA)
+  document.querySelectorAll('input[name="fs-category"]').forEach(radio => {
+    radio.addEventListener("change", () => {
+      State.FsCategory = radio.value;
+      updateButtonAvailability();
+
+      const totalAllowed = getTotalAllowed();
+
+      if (!State.TestMode) {
+        // REVIEW MODE: highlight first allowed block & reset progress
+        const list = allowedBlocks[State.FsCategory] || [];
+        if (list.length > 0) {
+          const firstAllowed = list[0];
+          Buttons.forEach(b => b.classList.remove("selected"));
+          const btnToSelect = document.querySelector(
+            `#GuessForm button[value="${firstAllowed}"]`
+          );
+          if (btnToSelect) btnToSelect.classList.add("selected");
+          loadImageForBlock(firstAllowed, "a", true);
+        }
+
+        if (ProgInline) ProgInline.textContent = `(0 of ${totalAllowed})`;
+        if (ProgBar) ProgBar.style.width = "0%";
+
+        if (progressHeading) {
+          progressHeading.style.transition = "opacity 0.2s ease, color 0.2s ease";
+          progressHeading.style.opacity = "0.6";
+          progressHeading.style.color = "#888";
+        }
+      } else {
+        // TEST MODE: restart test for new category
+        startNewTestRound();
+      }
+    });
+  });
+
+  // Initial button availability and selection
+  updateButtonAvailability();
+  if (!State.TestMode) {
+    const list = allowedBlocks[State.FsCategory] || [];
+    if (list.length > 0) {
+      const firstAllowed = list[0];
+      Buttons.forEach(b => b.classList.remove("selected"));
+      const btnToSelect = document.querySelector(
+        `#GuessForm button[value="${firstAllowed}"]`
+      );
+      if (btnToSelect) btnToSelect.classList.add("selected");
+      loadImageForBlock(firstAllowed, "a", false);
+    }
+
+    const totalAllowed = getTotalAllowed();
+    if (ProgInline) ProgInline.textContent = `(0 of ${totalAllowed})`;
+    if (ProgBar) ProgBar.style.width = "0%";
+
+    if (progressHeading) {
+      progressHeading.style.transition = "opacity 0.2s ease, color 0.2s ease";
+      progressHeading.style.opacity = "0.6";
+      progressHeading.style.color = "#888";
+    }
+  }
+
+  // Test mode toggle
+  testToggle.addEventListener("change", () => {
+    const isTestMode = testToggle.checked;
+    State.TestMode = isTestMode;
+
+    if (isTestMode) {
+      startNewTestRound();
+    } else {
+      // Back to REVIEW MODE
+      setGridLocked(false);
+      State.Correct = 0;
+      State.Incorrect = 0;
+      State.Progress = 0;
+      State.AttemptedWrong = false;
+
+      const list = allowedBlocks[State.FsCategory] || [];
+      if (list.length > 0) {
+        const firstAllowed = list[0];
+        Buttons.forEach(b => b.classList.remove("selected"));
+        const btnToSelect = document.querySelector(
+          `#GuessForm button[value="${firstAllowed}"]`
+        );
+        if (btnToSelect) btnToSelect.classList.add("selected");
+        loadImageForBlock(firstAllowed, "a", true);
+      }
+
+      const totalAllowed = getTotalAllowed();
+      if (ProgInline) ProgInline.textContent = `(0 of ${totalAllowed})`;
+      if (ProgBar) ProgBar.style.width = "0%";
+
+      if (progressHeading) {
+        progressHeading.style.transition = "opacity 0.2s ease, color 0.2s ease";
+        progressHeading.style.opacity = "0.6";
+        progressHeading.style.color = "#888";
+      }
+
+      const oldOverlay = document.getElementById("overlay");
+      if (oldOverlay) oldOverlay.remove();
+    }
+  });
+
+  // Button click logic
+  Buttons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const Guess = parseInt(btn.value, 10);
+      const isTestMode = State.TestMode;
+      const currentSeq = ++sequence;
+
+      if (!isTestMode) {
+        // REVIEW MODE: select block and show its "a" frame
+        Buttons.forEach(b => b.classList.remove("selected"));
+        btn.classList.add("selected");
+        loadImageForBlock(Guess, "a", true);
+        return;
+      }
+
+      // TEST MODE
+      if (State.CurrentBlock === null) {
+        setGridLocked(false);
+        return;
+      }
+
+      setGridLocked(true);
+
+      let overlay = document.getElementById("overlay");
+      if (overlay) overlay.remove();
+      overlay = document.createElement("div");
+      overlay.id = "overlay";
+      overlay.className = "overlay";
+
+      const wrapper = document.querySelector(".image-wrapper");
+
+      if (Guess === State.CurrentBlock) {
+        // ✅ Correct
+        overlay.style.color = "lime";
+        overlay.textContent = "✅ Correct";
+        if (!State.AttemptedWrong) State.Correct++;
+        State.Progress++;
+
+        State.Remaining = State.Remaining.filter(
+          bnum => bnum !== State.CurrentBlock
+        );
+        State.AttemptedWrong = false;
+        updateProgressUI();
+        wrapper.appendChild(overlay);
+
+        // All done?
+        if (State.Remaining.length === 0) {
+          setTimeout(() => {
+            if (currentSeq !== sequence) return;
+            setGridLocked(false);
+            showResultsModal();
+          }, 800);
+        } else {
+          // Pick next block
+          setTimeout(() => {
+            if (currentSeq !== sequence) return;
+            const idx = Math.floor(Math.random() * State.Remaining.length);
+            State.CurrentBlock = State.Remaining[idx];
+            loadImageForBlock(State.CurrentBlock, "a", true);
+            setTimeout(() => setGridLocked(false), 300);
+          }, 800);
+        }
+      } else {
+        // ❌ Incorrect
+        overlay.style.color = "red";
+        overlay.textContent = "❌ Try Again";
+        if (!State.AttemptedWrong) {
+          State.Incorrect++;
+          State.AttemptedWrong = true;
+        }
+        wrapper.appendChild(overlay);
+        setTimeout(() => {
+          if (currentSeq !== sequence) return;
+          setGridLocked(false);
+        }, 800);
+      }
+    });
+  });
+});
+
+function updateButtonAvailability() {
+  const selectedCat =
+    document.querySelector('input[name="fs-category"]:checked')?.value || "AAA";
+  const allowed = allowedBlocks[selectedCat] || [];
+  const buttons = document.querySelectorAll("#GuessForm button");
+
+  buttons.forEach(btn => {
+    const num = parseInt(btn.value, 10);
+    if (allowed.includes(num)) {
+      btn.disabled = false;
+      btn.style.opacity = "1";
+      btn.style.pointerEvents = "auto";
+    } else {
+      btn.disabled = true;
+      btn.style.opacity = "0.35";
+      btn.style.pointerEvents = "none";
+      btn.classList.remove("selected");
+    }
+  });
+}
+
+// --- Results Modal Close ---
+function closeResults() {
+  const modal = document.getElementById("resultsModal");
+  if (modal) modal.style.display = "none";
+  startNewTestRound();
+}
+
+// --- Swipe gesture handler ---
+// --- Swipe gesture handler (Test Mode supported, NO wrap) ---
+let touchStartX = 0;
+let touchEndX = 0;
+
+function handleSwipeGesture() {
+  const Img = document.getElementById("formation-image");
+  const counter = document.getElementById("formation-counter");
+
+  // Determine active block properly
+  const Guess = State.TestMode
+    ? State.CurrentBlock
+    : (document.querySelector('#GuessForm button.selected')?.value || null);
+
+  if (!Guess) return;
+
+  const currentState = blockState[Guess] || 'a';
+  let nextState = currentState;
+
+  const swipeLeft  = touchStartX - touchEndX > 50;
+  const swipeRight = touchEndX - touchStartX > 50;
+
+  if (swipeLeft) {
+    if (currentState === 'a') nextState = 'b';
+    else if (currentState === 'b') nextState = 'c';
+    else return;
+  } else if (swipeRight) {
+    if (currentState === 'c') nextState = 'b';
+    else if (currentState === 'b') nextState = 'a';
+    else return;
+  } else {
+    return;
+  }
+
+  blockState[Guess] = nextState;
+
+  const stageNumber = nextState === 'a' ? 1 : nextState === 'b' ? 2 : 3;
+  counter.textContent = `${stageNumber} of 3`;
+  updateNavHints(nextState);
+
+  const newSrc = `static/Blocks/${Guess}${nextState}.png`;
+  Img.classList.add("fade-out");
+
+  setTimeout(() => {
+    Img.src = newSrc;
+    Img.onload = () => {
+      Img.classList.remove("fade-out");
+      Img.classList.add("fade-in");
+      setTimeout(() => Img.classList.remove("fade-in"), 300);
+    };
+  }, 100);
+}
+
+const imageArea = document.getElementById("image-area");
+imageArea.addEventListener("touchstart", e => {
+  touchStartX = e.changedTouches[0].screenX;
+});
+imageArea.addEventListener("touchend", e => {
+  touchEndX = e.changedTouches[0].screenX;
+  handleSwipeGesture();
+});
+
+// --- Desktop arrow key handler ---
+// --- Desktop arrow key handler (Test Mode supported, NO wrap) ---
+document.addEventListener("keydown", e => {
+  if (window.innerWidth < 768) return;
+
+  const Img = document.getElementById("formation-image");
+  const counter = document.getElementById("formation-counter");
+
+  // Determine active block properly
+  const Guess = State.TestMode
+    ? State.CurrentBlock
+    : (document.querySelector('#GuessForm button.selected')?.value || null);
+
+  if (!Guess) return;
+
+  const currentState = blockState[Guess] || 'a';
+  let nextState = currentState;
+
+  if (e.key === "ArrowRight") {
+    if (currentState === 'a') nextState = 'b';
+    else if (currentState === 'b') nextState = 'c';
+    else return;
+  }
+  else if (e.key === "ArrowLeft") {
+    if (currentState === 'c') nextState = 'b';
+    else if (currentState === 'b') nextState = 'a';
+    else return;
+  } else {
+    return;
+  }
+
+  blockState[Guess] = nextState;
+
+  const stageNumber = nextState === 'a' ? 1 : nextState === 'b' ? 2 : 3;
+  counter.textContent = `${stageNumber} of 3`;
+  updateNavHints(nextState);
+
+  const newSrc = `static/Blocks/${Guess}${nextState}.png`;
+  Img.classList.add("fade-out");
+
+  setTimeout(() => {
+    Img.src = newSrc;
+    Img.onload = () => {
+      Img.classList.remove("fade-out");
+      Img.classList.add("fade-in");
+      setTimeout(() => Img.classList.remove("fade-in"), 300);
+    };
+  }, 100);
+});
+
+</script>
+
+</body>
+</html>

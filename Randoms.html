@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#1e1e1e">
+<link rel="manifest" href="static/manifest.json">
+<link rel="icon" type="image/png" href="static/favicon.png">
+<title>FS Randoms Trainer</title>
+
+<style>
+:root {
+  --gutter: 10px;
+  --space-top: 5px;
+  --space-bottom: 5px;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  background-color: #1e1e1e;
+  color: white;
+  font-family: 'Segoe UI', sans-serif;
+  text-align: center;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+body, .app-container, .app-scale-wrapper {
+  width: 100%;
+  height: auto;
+}
+
+.app-scale-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+}
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0);
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.row {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  width: 100%;
+  box-sizing: border-box;
+  padding-left: calc(var(--gutter) + env(safe-area-inset-left, 0));
+  padding-right: calc(var(--gutter) + env(safe-area-inset-right, 0));
+}
+
+h1 {
+  font-size: clamp(24px, 5vw, 42px);
+  margin: 6px 0 4px 0;
+  font-weight: bold;
+}
+
+.slot-banner {
+  height: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.slot-banner img {
+  max-height: 40px;
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+/* -------- Headings (ensure left alignment) -------- */
+h2 {
+  font-size: clamp(22px, 4vw, 32px);
+  margin: 0;
+  padding: 0;
+  line-height: 1;
+  text-align: left;
+  align-self: flex-start;
+  display: block;
+  width: 100%;
+}
+.section-top    { margin-top: var(--space-top); }
+.section-bottom { margin-bottom: var(--space-bottom); }
+
+/* -------- Category toggle (Randoms / Blocks) -------- */
+.category-toggle {
+  margin-top: 8px;
+  margin-bottom: 8px;
+  width: 100%;
+  justify-content: center;
+}
+.category-toggle label {
+  font-size: clamp(22px, 4vw, 32px);
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+}
+@media all and (display-mode: standalone) and (max-width: 767px) {
+  .category-toggle label {
+    height: 46px;
+  }
+}
+
+main.content {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.image-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  position: relative;
+  overflow: hidden;
+  margin: 0;
+  width: 100%;
+}
+.image-wrapper img {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  object-position: center bottom;
+  transition: opacity 0.3s ease-in-out;
+}
+.image-wrapper img.fade-out { opacity: 0; }
+.image-wrapper img.fade-in { opacity: 1; }
+
+.overlay {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  font-size: clamp(28px, 6vw, 50px);
+  font-weight: bold;
+  text-shadow: 0 0 15px rgba(0,0,0,0.9);
+  pointer-events: none;
+  animation: fadeout 0.8s ease-in forwards;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+@keyframes fadeout { 0%,80%{opacity:1;} 100%{opacity:0;} }
+
+@media screen and (max-width: 767px) {
+  .overlay {
+    font-size: clamp(42px, 10vw, 80px);
+    text-shadow: 0 0 25px rgba(0,0,0,1);
+  }
+}
+
+/* -------- Button styles -------- */
+/* --- Unified alignment for button grid --- */
+.buttons {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  flex: 0 0 auto;
+  width: 100%;
+  margin: 0;
+  box-sizing: border-box;
+  padding-left: calc(var(--gutter) + env(safe-area-inset-left, 0));
+  padding-right: calc(var(--gutter) + env(safe-area-inset-right, 0));
+}
+.buttons button {
+  height: 36px;
+  font-size: 16px;
+  border-radius: 6px;
+  background: #333;
+  color: white;
+  border: 2px solid #555;
+  cursor: pointer;
+  padding: 4px 0;
+  white-space: nowrap;
+  line-height: 1.1;
+  word-break: keep-all;
+}
+.buttons button:hover { background:#444; }
+.buttons button:active {
+  background: #4caf50;       /* flash green when pressed */
+  border-color: #4caf50;
+  color: white;
+  transform: scale(0.97);
+}
+
+/* --- Highlight the currently selected button in review mode (Test OFF) --- */
+button.selected {
+  background: #4caf50 !important;  /* same green as active toggles */
+  color: white !important;          /* keep text white */
+  border-color: #4caf50 !important;
+  font-weight: bold;
+}
+
+/* Force Randoms/Blocks + Test to align horizontally */
+.row.category-row {
+  flex-direction: row !important;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Force Letter/Name + No Hint to align horizontally */
+.row.mode-row {
+  flex-direction: row !important;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* -------- PWA mode font and truncation fix -------- */
+@media all and (display-mode: standalone) {
+  .buttons button {
+    height: 36px;
+    font-size: clamp(14px, 3.5vw, 16px); /* Slightly smaller */
+    white-space: nowrap !important;
+  }
+}
+
+/* -------- Desktop full-height fix -------- */
+@media screen and (min-width: 768px) {
+  html, body, .app-container, .app-scale-wrapper {
+    height: 100vh;
+  }
+}
+
+/* -------- Desktop button spacing -------- */
+@media screen and (min-width: 768px) {
+  .buttons {
+    gap: 12px;
+  }
+  .buttons button {
+    height: 82px;
+    font-size: 24px;
+  }
+}
+
+footer {
+  flex: 0 0 auto;
+  padding-bottom: calc(env(safe-area-inset-bottom,0) + 8px);
+}
+.progress-bar-container {
+  background:#333;
+  border-radius:10px;
+  overflow:hidden;
+  height:25px;
+  width:102%;
+  margin-bottom:8px;
+  margin-left:-1%;
+}
+.progress-bar {
+  height:100%;
+  background:lime;
+  width: 0%;
+  transition:width 0.3s ease-in-out;
+}
+.progress-inline {
+  font-weight:bold;
+  margin-left:6px;
+}
+
+/* Smooth transition for greying out Progress heading */
+#progressHeading[style*="opacity: 0.5"] {
+  transition: opacity 0.2s ease;
+}
+
+/* -------- Modal -------- */
+.modal {
+  display:none;
+  position:fixed;
+  inset:0;
+  justify-content:center;
+  align-items:center;
+  z-index:999;
+}
+.modal-content {
+  background:#2f2f2f;
+  padding:clamp(20px,5vw,40px);
+  border-radius:12px;
+  text-align:center;
+  width:clamp(240px,70%,330px);
+  position:relative;
+}
+.modal-content h2{margin:0 0 15px 0;font-size:clamp(26px,6vw,38px);}
+.modal-content p{font-size:clamp(20px,5vw,30px);margin:10px 0;}
+.close-x {
+  position:absolute;top:10px;right:18px;
+  font-size:clamp(22px,6vw,30px);
+  color:#aaa;font-weight:bold;cursor:pointer;
+}
+.close-x:hover{color:white;}
+
+/* -------- Toggle styling -------- */
+.toggle-group {
+  display: inline-flex;
+  justify-content: flex-start;
+  align-items: center;
+  background: #333;
+  border: 2px solid #555;
+  border-radius: 6px;
+  overflow: hidden;
+  width: fit-content;
+  align-self: flex-start;
+  margin-top: 4px;
+  margin-bottom: 6px;
+  margin-left: -4px;
+}
+.toggle-group label {
+  flex: 1;
+  padding: 6px 15px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: clamp(22px, 4vw, 32px);
+  color: #ccc;
+  background: #333;
+  transition: background 0.2s, color 0.2s;
+}
+.toggle-group input[type="radio"] {
+  display: none;
+}
+.toggle-group input[type="radio"]:checked + label {
+  background: #4caf50;
+  color: white;
+}
+
+/* -------- Inline layout for Letter/Name + No Hint -------- */
+.mode-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.hint-toggle-inline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.hint-toggle-inline .hint-label {
+  font-size: clamp(18px, 3.5vw, 26px);
+  font-weight: bold;
+  color: #ccc;
+  transition: color 0.3s ease-in-out;
+}
+
+/* Visually dim and block clicks when disabled */
+#no-hint:disabled + .slider {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;        /* <— blocks clicks on the slider */
+}
+#no-hint:disabled ~ #hint-label {
+  opacity: 0.4;
+  pointer-events: none;        /* <— blocks clicks on the label text */
+}
+
+/* -------- Inline layout for Randoms/Blocks + Test -------- */
+.category-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+/* -------- Consistent side alignment for all sections -------- */
+.row,
+.image-wrapper {
+  padding-left: calc(var(--gutter) + env(safe-area-inset-left, 0));
+  padding-right: calc(var(--gutter) + env(safe-area-inset-right, 0));
+  box-sizing: border-box;
+}
+
+/* Make all rows align evenly (no extra margin offsets) */
+.mode-row,
+.category-row {
+  margin-left: 0;
+  margin-right: 0;
+}
+
+/* Keep toggle group properly aligned within its row */
+.toggle-group {
+  margin-left: 0;
+}
+
+/* Make the label turn green when active */
+.hint-toggle-inline input:checked ~ .hint-label {
+  color: #4caf50;
+}
+
+/* Adjust switch size for consistency */
+.hint-toggle-inline .switch {
+  position: relative;
+  display: inline-block;
+  width: 46px;
+  height: 26px;
+}
+.hint-toggle-inline .switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.hint-toggle-inline .slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #555;
+  transition: 0.3s;
+  border-radius: 26px;
+}
+.hint-toggle-inline .slider:before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.3s;
+  border-radius: 50%;
+}
+.hint-toggle-inline .switch input:checked + .slider {
+  background-color: #4caf50;
+}
+.hint-toggle-inline .switch input:checked + .slider:before {
+  transform: translateX(20px);
+}
+
+/* --- FINAL FIX: Force Randoms/Blocks toggle to match Letter/Name --- */
+.toggle-group.category-toggle label {
+  height: 20px !important; /* default browser */
+}
+
+/* PWA mode */
+@media all and (display-mode: standalone) {
+  .toggle-group.category-toggle label {
+    height: 26px !important;
+    font-size: 22px !important;
+  }
+}
+
+/* Desktop mode */
+@media screen and (min-width: 768px) {
+  .toggle-group.category-toggle label {
+    height: 42px !important;
+    font-size: 30px !important;
+  }
+}
+
+/* Fully lock the grid when class .locked is applied */
+#GuessForm.locked {
+  pointer-events: none !important;
+  opacity: 0.6;              /* optional dimming to show it's inactive */
+  transition: opacity 0.2s ease;
+}
+
+/* Reduce the width of the "Letter" toggle button on Desktop */
+@media screen and (min-width: 768px) {
+  .toggle-group label[for="mode-letter"] {
+    flex: 0 0 80px;        /* narrower fixed width (adjust as needed) */
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+  .toggle-group label[for="mode-name"] {
+    flex: 1;                /* let Name expand to fill remaining space */
+  }
+}
+
+@media screen and (min-width: 768px) {
+    body {
+        transform: scale(1.0);
+        transform-origin: top center;
+    }
+}
+
+</style>
+</head>
+
+<body>
+<div class="app-scale-wrapper">
+  <div class="app-container">
+
+    <header class="row">
+      <h1>FS Randoms Trainer</h1>
+    </header>
+
+    <div class="row">
+      <div class="slot-banner">
+        <img src="static/slots.png" alt="Slot Positions">
+      </div>
+    </div>
+
+    <main class="content">
+      <div class="row category-row">
+        <div class="toggle-group category-toggle">
+          <input type="radio" id="cat-randoms" name="category" value="Randoms" checked>
+          <label for="cat-randoms">Randoms</label>
+          <input type="radio" id="cat-blocks" name="category" value="Blocks">
+          <label for="cat-blocks">Blocks</label>
+        </div>
+
+        <div class="hint-toggle-inline">
+          <label class="switch">
+            <input type="checkbox" id="test-mode">
+            <span class="slider"></span>
+          </label>
+          <span class="hint-label" id="test-label">Test</span>
+        </div>
+      </div>
+
+      <div class="image-wrapper" id="image-area">
+        <img id="formation-image" src="static/Randoms/Letter/A.png" alt="Formation">
+      </div>
+
+      <div class="row mode-row">
+        <div class="toggle-group">
+          <input type="radio" id="mode-letter" name="mode" value="Letter" checked>
+          <label for="mode-letter">Letter</label>
+          <input type="radio" id="mode-name" name="mode" value="Name">
+          <label for="mode-name">Name</label>
+        </div>
+
+        <div class="hint-toggle-inline">
+          <label class="switch">
+            <input type="checkbox" id="no-hint">
+            <span class="slider"></span>
+          </label>
+          <span class="hint-label" id="hint-label">No Hint</span>
+        </div>
+      </div>
+
+      <form class="buttons row" id="GuessForm">
+        <button type="button" value="A">A</button>
+        <button type="button" value="B">B</button>
+        <button type="button" value="C">C</button>
+        <button type="button" value="D">D</button>
+        <button type="button" value="E">E</button>
+        <button type="button" value="F">F</button>
+        <button type="button" value="G">G</button>
+        <button type="button" value="H">H</button>
+        <button type="button" value="J">J</button>
+        <button type="button" value="K">K</button>
+        <button type="button" value="L">L</button>
+        <button type="button" value="M">M</button>
+        <button type="button" value="N">N</button>
+        <button type="button" value="O">O</button>
+        <button type="button" value="P">P</button>
+        <button type="button" value="Q">Q</button>
+      </form>
+    </main>
+
+    <footer class="row">
+      <h2 id="progressHeading" class="section-top section-bottom">
+        Progress <span class="progress-inline">(0 of 16)</span>
+      </h2>
+      <div class="progress-bar-container"><div class="progress-bar"></div></div>
+    </footer>
+
+  </div>
+</div>
+
+<div class="modal" id="resultsModal">
+  <div class="modal-content">
+    <span class="close-x" onclick="closeResults()">×</span>
+    <h2>Results</h2>
+    <p id="results-correct" style="color:lime;">✅ Correct: 0</p>
+    <p id="results-incorrect" style="color:red;">❌ Incorrect: 0</p>
+  </div>
+</div>
+
+<script>
+/* ----- CONSTANTS ----- */
+const Labels = ['A','B','C','D','E','F','G','H','J','K','L','M','N','O','P','Q'];
+const Total = Labels.length;
+
+const NameMap = {
+  A: "Unipod", B: "Stair Diam", C: "Mrphy Flak", D: "Yuan",
+  E: "Meeker", F: "Open Accor", G: "Cataccord", H: "Bow",
+  J: "Donut", K: "Hook", L: "Adder", M: "Star",
+  N: "Crank", O: "Satellite", P: "Sidebody", Q: "Phalanx"
+};
+
+/* ----- STATE ----- */
+let State = {
+  Mode: "Letter",
+  NoHint: false,
+  TestMode: false,
+  Remaining: [...Labels],
+  Current: "A",
+  Correct: 0,
+  Incorrect: 0,
+  Progress: 0,
+  AttemptedWrong: false
+};
+let sequence = 0;
+
+/* ----- HELPERS ----- */
+function setGridLocked(state) {
+  const grid = document.getElementById("GuessForm");
+  if (!grid) return;
+  if (state) grid.classList.add("locked");
+  else grid.classList.remove("locked");
+}
+
+function getFolderForCurrent() {
+  if (State.NoHint) return "NoHints";
+  return State.Mode === "Letter" ? "Letter" : "Name";
+}
+
+function loadImageForCurrent(withFade = true) {
+  const Img = document.getElementById("formation-image");
+  if (!Img) return;
+  const folder = getFolderForCurrent();
+  const src = `static/Randoms/${folder}/${State.Current}.png`;
+
+  if (!withFade) {
+    Img.src = src;
+    return;
+  }
+
+  Img.classList.add("fade-out");
+  setTimeout(() => {
+    Img.src = src;
+    Img.onload = () => {
+      Img.classList.remove("fade-out");
+      Img.classList.add("fade-in");
+      setTimeout(() => Img.classList.remove("fade-in"), 300);
+    };
+  }, 150);
+}
+
+function updateProgressUI() {
+  const ProgInline = document.querySelector(".progress-inline");
+  const ProgBar = document.querySelector(".progress-bar");
+  if (ProgInline) ProgInline.textContent = `(${State.Progress} of ${Total})`;
+  if (ProgBar) {
+    const pct = (State.Progress / Total) * 100;
+    ProgBar.style.width = `${pct}%`;
+  }
+}
+
+function updateButtonLabels() {
+  const Buttons = document.querySelectorAll("#GuessForm button");
+  if (!Buttons) return;
+  if (State.Mode === "Name") {
+    Buttons.forEach(btn => btn.textContent = NameMap[btn.value] || btn.value);
+  } else {
+    Buttons.forEach(btn => btn.textContent = btn.value);
+  }
+}
+
+function updateNoHintAvailability() {
+  const testToggle = document.getElementById("test-mode");
+  const noHintToggle = document.getElementById("no-hint");
+  const hintLabel = document.getElementById("hint-label");
+
+  if (!testToggle.checked) {
+    if (noHintToggle.checked) {
+      noHintToggle.checked = false;
+      State.NoHint = false;
+      loadImageForCurrent(true);
+    }
+    noHintToggle.disabled = true;
+    hintLabel.style.opacity = "0.5";
+  } else {
+    noHintToggle.disabled = false;
+    hintLabel.style.opacity = "1";
+  }
+}
+
+function startNewTestRound() {
+  const prevCurrent = State.Current;
+  State.Remaining = [...Labels];
+  State.Correct = 0;
+  State.Incorrect = 0;
+  State.Progress = 0;
+  State.AttemptedWrong = false;
+  let candidates = Labels.filter(lbl => lbl !== prevCurrent);
+  if (candidates.length === 0) candidates = [...Labels];
+  State.Current = candidates[Math.floor(Math.random() * candidates.length)];
+  updateProgressUI();
+  loadImageForCurrent(true);
+
+  const Buttons = document.querySelectorAll("#GuessForm button");
+  Buttons.forEach(b => b.classList.remove("selected"));
+}
+
+function showResultsModal() {
+  const modal = document.getElementById("resultsModal");
+  document.getElementById("results-correct").textContent =
+    `✅ Correct: ${State.Correct}`;
+  document.getElementById("results-incorrect").textContent =
+    `❌ Incorrect: ${State.Incorrect}`;
+  modal.style.display = "flex";
+}
+
+/* ----- MAIN DOM SETUP ----- */
+document.addEventListener("DOMContentLoaded", () => {
+  const Img = document.getElementById("formation-image");
+  const Buttons = document.querySelectorAll("#GuessForm button");
+  const modeLetter = document.getElementById("mode-letter");
+  const modeName = document.getElementById("mode-name");
+  const catBlocks = document.getElementById("cat-blocks");
+  const testToggle = document.getElementById("test-mode");
+  const progressHeading = document.getElementById("progressHeading");
+
+  State.Current = "A";
+  updateButtonLabels();
+  updateProgressUI();
+
+  if (Img) Img.src = "static/Randoms/Letter/A.png";
+
+  if (Buttons.length > 0) {
+    const firstBtn = document.querySelector('#GuessForm button[value="A"]');
+    firstBtn.classList.add("selected");
+  }
+
+  progressHeading.style.opacity = "0.6";
+  progressHeading.style.color = "#888";
+
+  updateNoHintAvailability();
+
+  /* Category navigation */
+  catBlocks.addEventListener("change", () => {
+    window.location.href = "Blocks.html";
+  });
+
+  /* Test toggle */
+  testToggle.addEventListener("change", () => {
+    const isTestMode = testToggle.checked;
+    State.TestMode = isTestMode;
+    updateNoHintAvailability();
+
+    if (isTestMode) {
+      progressHeading.style.opacity = "1";
+      progressHeading.style.color = "white";
+      startNewTestRound();
+      setGridLocked(false);
+    } else {
+      progressHeading.style.opacity = "0.6";
+      progressHeading.style.color = "#888";
+      State.Correct = 0;
+      State.Incorrect = 0;
+      State.Progress = 0;
+      State.AttemptedWrong = false;
+      State.Current = "A";
+      updateProgressUI();
+
+      Buttons.forEach(b => b.classList.remove("selected"));
+      document.querySelector('#GuessForm button[value="A"]').classList.add("selected");
+
+      loadImageForCurrent(true);
+      setGridLocked(false);
+    }
+  });
+
+  /* No Hint toggle */
+  const noHintToggle = document.getElementById("no-hint");
+  noHintToggle.addEventListener("change", () => {
+    State.NoHint = noHintToggle.checked;
+    loadImageForCurrent(true);
+  });
+
+  /* Mode toggles */
+  modeLetter.addEventListener("change", () => {
+    if (modeLetter.checked) {
+      State.Mode = "Letter";
+      updateButtonLabels();
+      loadImageForCurrent(true);
+    }
+  });
+  modeName.addEventListener("change", () => {
+    if (modeName.checked) {
+      State.Mode = "Name";
+      updateButtonLabels();
+      loadImageForCurrent(true);
+    }
+  });
+
+  /* Button click logic */
+  Buttons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const letter = btn.value;
+      const isTestMode = State.TestMode;
+      const currentSeq = ++sequence;
+      setGridLocked(true);
+
+      /* REVIEW MODE */
+      if (!isTestMode) {
+        State.Current = letter;
+        Buttons.forEach(b => b.classList.remove("selected"));
+        btn.classList.add("selected");
+        loadImageForCurrent(true);
+        setTimeout(() => setGridLocked(false), 300);
+        return;
+      }
+
+      /* TEST MODE */
+      let overlay = document.getElementById("overlay");
+      if (overlay) overlay.remove();
+
+      const wrapper = document.querySelector(".image-wrapper");
+      overlay = document.createElement("div");
+      overlay.id = "overlay";
+      overlay.className = "overlay";
+
+      if (letter === State.Current) {
+        overlay.style.color = "lime";
+        overlay.textContent = "✅ Correct";
+        if (!State.AttemptedWrong) State.Correct++;
+        State.Progress++;
+        State.Remaining = State.Remaining.filter(lbl => lbl !== State.Current);
+        updateProgressUI();
+        wrapper.appendChild(overlay);
+
+        if (State.Remaining.length === 0) {
+          setTimeout(() => {
+            if (currentSeq !== sequence) return;
+            setGridLocked(false);
+            showResultsModal();
+          }, 800);
+        } else {
+          setTimeout(() => {
+            if (currentSeq !== sequence) return;
+            const nextIndex = Math.floor(Math.random() * State.Remaining.length);
+            State.Current = State.Remaining[nextIndex];
+            State.AttemptedWrong = false;
+            loadImageForCurrent(true);
+            setTimeout(() => setGridLocked(false), 300);
+          }, 800);
+        }
+      } else {
+        overlay.style.color = "red";
+        overlay.textContent = "❌ Try Again";
+        if (!State.AttemptedWrong) {
+          State.Incorrect++;
+          State.AttemptedWrong = true;
+        }
+        wrapper.appendChild(overlay);
+        setTimeout(() => {
+          if (currentSeq !== sequence) return;
+          setGridLocked(false);
+        }, 800);
+      }
+    });
+  });
+});
+
+/* ----- Close modal ----- */
+function closeResults() {
+  const modal = document.getElementById("resultsModal");
+  modal.style.display = "none";
+  startNewTestRound();
+}
+</script>
+
+</body>
+</html>

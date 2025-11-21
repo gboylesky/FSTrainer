@@ -1,7 +1,0 @@
-1. cd "C:\Users\GB\Desktop\FS Trainer Web"
-2. git status
-3. git add .
-4. git commit -m "... Comment ..."
-5. git push origin main
-6. Open https://render.com → watch it build → Deploying → Live
-7. Refresh your Render app URL to confirm the update.
